@@ -7,8 +7,8 @@ genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 st.title("🤖 Gemma AI Strategy Consultant")
 
 # 2. เลือกสมอง AI (ถ้าหา Gemma 4 ไม่เจอ ให้ใช้ Gemini 1.5 Flash ไปก่อนได้ครับ)
-model = genai.GenerativeModel('gemma-4-31b-it')
-
+#model = genai.GenerativeModel('gemma-4-31b-it')
+model = genai.GenerativeModel('gemini-1.5-flash')
 # 3. ส่วนรับคำถามจาก User
 user_question = st.text_input("ถามคำถามเกี่ยวกับกลยุทธ์เมืองรองที่นี่:")
 
