@@ -1,52 +1,32 @@
 import streamlit as st
 
-# 1. การตั้งค่าหน้าเว็บ (Config)
-st.set_page_config(
-    page_title="Gemma-Insight | Smart Tourism Strategist",
-    page_icon="🧭",
-    layout="wide"
-)
+st.set_page_config(page_title="Gemma City-Smart Strategist", layout="wide")
 
-# 2. การจัดการ Session State (หัวใจของ Data-centric App)
-# เราสร้างตัวแปรเก็บไว้ใน Session เพื่อให้หน้าอื่นดึงไปใช้ได้
-if 'selected_province' not in st.session_state:
-    st.session_state['selected_province'] = "All Thailand"
+st.title("🏙️ Gemma City-Smart Strategist")
+st.markdown("### ยกระดับการท่องเที่ยวเมืองรองด้วยพลังของ Data & AI")
 
-if 'selected_region' not in st.session_state:
-    st.session_state['selected_region'] = "All Regions"
+st.divider()
 
-# 3. Sidebar Menu
-st.sidebar.title("🧭 Navigation")
-st.sidebar.info("Select a mode from the sidebar to begin your analysis.")
-
-# 4. Main Content (Home Page)
-st.title("🧭 Gemma-Insight: Smart-Event Strategist")
-st.subheader("Leveraging AI to Empower Thailand's Secondary Cities")
-
-st.markdown("---")
-
+# ส่วนเนื้อหา Issues & Motivation 
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    st.markdown("""
-    ### 🌟 About the Project
-    Welcome to **Gemma-Insight**, a data-driven application designed to transform 
-    how we approach tourism in Thailand's 55 secondary cities. 
-    
-    Our app helps stakeholders bridge the gap between complex tourism statistics 
-    and actionable business strategies by using **Google's Gemma 4 AI**.
-    
-    ### 🚀 How it works:
-    1. **Explore Analytics:** Go to the **Analytics Dashboard** to see trends, revenues, and festival impacts.
-    2. **Get AI Insights:** Switch to **Gemma AI Advisor** to get personalized strategic recommendations based on the data you've filtered.
+    st.subheader("📌 ปัญหาและความท้าทาย (Issues)")
+    st.write("""
+    - **การกระจุกตัวของรายได้:** 80% ของรายได้ท่องเที่ยวไทยยังอยู่ที่เมืองหลัก
+    - **ความยากในการวิเคราะห์:** ผู้ประกอบการท้องถิ่นเข้าถึงข้อมูล Insight ได้ยาก
+    - **โอกาสที่หายไป:** เมืองรองมีเทศกาลที่น่าสนใจมากมาย แต่ขาดการวางแผนกลยุทธ์ที่แม่นยำ
     """)
 
 with col2:
-    st.info("💡 **Quick Start**\n\nChoose a province in the Dashboard to update the AI's context automatically!")
-    
-    # แสดงสถานะปัจจุบัน (Data Context)
-    st.write(f"**Current Context:** {st.session_state['selected_province']}")
-    st.write(f"**Region:** {st.session_state['selected_region']}")
+    st.info("""
+    **เป้าหมายของโปรเจค:**
+    เราใช้ **Gemma 4** ร่วมกับข้อมูลเทศกาล 39 แห่งทั่วประเทศ เพื่อสร้างเครื่องมือช่วยตัดสินใจให้กับนักท่องเที่ยวและภาครัฐ
+    """)
 
-st.markdown("---")
-st.caption("Developed for the Data Analytics and Data Science (DADS) Final Project.")
+st.divider()
+st.write("👈 **กรุณาเลือกเมนูที่แถบด้านข้าง** เพื่อเริ่มวิเคราะห์ข้อมูลหรือคุยกับ AI")
+
+# เซตค่าเริ่มต้นให้ Session State (ป้องกัน Error เวลาข้ามหน้า)
+if 'selected_province' not in st.session_state:
+    st.session_state['selected_province'] = 'Lampang'
