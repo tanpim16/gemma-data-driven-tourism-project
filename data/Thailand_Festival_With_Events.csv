@@ -1,0 +1,542 @@
+Province_ID,Region,Scope,Festival_Name_EN,Festival_Name_TH,Month,Season,Category
+Amnat Charoen,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Amnat Charoen,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Amnat Charoen,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Amnat Charoen,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Amnat Charoen,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Amnat Charoen,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Amnat Charoen,Northeast,Provincial,Hit Sip Song Festival,ฮีตสิบสองและงานกาชาด,Dec,High Season,Tradition
+Ang Thong,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Ang Thong,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Ang Thong,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Ang Thong,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Ang Thong,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Ang Thong,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Ang Thong,Central,Provincial,Boat Racing,ประเพณีแข่งเรือยาว,Oct,Low Season,Tradition
+Ayutthaya,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Ayutthaya,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Ayutthaya,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Ayutthaya,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Ayutthaya,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Ayutthaya,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Ayutthaya,Central,Provincial,World Heritage Fair,ยอยศยิ่งฟ้าอยุธยามรดกโลก,Dec,High Season,History
+Bangkok,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Bangkok,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Bangkok,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Bangkok,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Bangkok,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Bangkok,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Bangkok,Central,Provincial,Golden Mount Festival,งานภูเขาทอง,Nov,High Season,Religious
+Bueng Kan,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Bueng Kan,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Bueng Kan,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Bueng Kan,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Bueng Kan,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Bueng Kan,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Bueng Kan,Northeast,Provincial,Rubber Festival,วันยางพาราบึงกาฬ,Jan,High Season,Agriculture
+Buriram,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Buriram,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Buriram,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Buriram,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Buriram,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Buriram,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Buriram,Northeast,Provincial,Phanom Rung Festival,ประเพณีขึ้นเขาพนมรุ้ง,Apr,High Season,History
+Chachoengsao,East,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Chachoengsao,East,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Chachoengsao,East,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Chachoengsao,East,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Chachoengsao,East,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Chachoengsao,East,Provincial,Mango Festival,เทศกาลมะม่วง,Apr,High Season,Agriculture
+Chai Nat,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Chai Nat,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Chai Nat,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Chai Nat,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Chai Nat,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Chai Nat,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Chai Nat,Central,Provincial,Straw Bird Fair,มหกรรมหุ่นฟางนก,Feb,High Season,Culture
+Chaiyaphum,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Chaiyaphum,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Chaiyaphum,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Chaiyaphum,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Chaiyaphum,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Chaiyaphum,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Chaiyaphum,Northeast,Provincial,Dok Krachiao Blooming,เทศกาลท่องเที่ยวดอกกระเจียวบาน,Jul,Low Season,Nature
+Chanthaburi,East,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Chanthaburi,East,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Chanthaburi,East,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Chanthaburi,East,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Chanthaburi,East,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Chanthaburi,East,Provincial,World Fruit Capital,มหานครผลไม้,May,Low Season,Agriculture
+Chiang Mai,North,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Chiang Mai,North,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Chiang Mai,North,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Chiang Mai,North,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Chiang Mai,North,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Chiang Mai,North,Regional,Northern Yi Peng,ประเพณียี่เป็ง (ระดับภาค),Nov,High Season,Tradition
+Chiang Mai,North,Provincial,Chiang Mai Flower Festival,มหกรรมไม้ดอกไม้ประดับ,Feb,High Season,Nature
+Chiang Mai,North,Provincial,Yi Peng Festival,ประเพณียี่เป็ง,Nov,High Season,Tradition
+Chiang Rai,North,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Chiang Rai,North,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Chiang Rai,North,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Chiang Rai,North,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Chiang Rai,North,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Chiang Rai,North,Regional,Northern Yi Peng,ประเพณียี่เป็ง (ระดับภาค),Nov,High Season,Tradition
+Chiang Rai,North,Provincial,Wai Sa Phaya Mengrai,งานไหว้สาพญาเม็งราย,Jan,High Season,Culture
+Chiang Rai,North,Provincial,Chiang Rai Flower Festival,เทศกาลเชียงรายดอกไม้งาม,Dec,High Season,Nature
+Chonburi,East,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Chonburi,East,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Chonburi,East,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Chonburi,East,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Chonburi,East,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Chonburi,East,Provincial,Buffalo Racing Festival,ประเพณีวิ่งควาย,Oct,Low Season,Tradition
+Chonburi,East,Provincial,Pattaya International Fireworks Festival,เทศกาลพลุนานาชาติพัทยา,Nov,High Season,Event
+Chumphon,South,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Chumphon,South,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Chumphon,South,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Chumphon,South,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Chumphon,South,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,Low Season,Tradition
+Chumphon,South,Regional,Sart Duan Sip,ประเพณีสารทเดือนสิบ,Oct,Low Season,Tradition
+Chumphon,South,Provincial,Marine Festival,งานเปิดโลกทะเลชุมพร,Mar,High Season,Nature
+Kalasin,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Kalasin,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Kalasin,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Kalasin,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Kalasin,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Kalasin,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Kalasin,Northeast,Provincial,Pong Lang Festival,มหกรรมโปงลางแพรวา,Feb,High Season,Culture
+Kamphaeng Phet,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Kamphaeng Phet,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Kamphaeng Phet,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Kamphaeng Phet,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Kamphaeng Phet,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Kamphaeng Phet,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Kamphaeng Phet,Central,Provincial,Banana Festival,สารทไทยกล้วยไข่เมืองกำแพง,Sep,Low Season,Agriculture
+Kanchanaburi,West,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Kanchanaburi,West,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Kanchanaburi,West,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Kanchanaburi,West,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Kanchanaburi,West,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Kanchanaburi,West,Provincial,River Kwai Bridge Week,สัปดาห์สะพานข้ามแม่น้ำแคว,Nov,High Season,History
+Khon Kaen,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Khon Kaen,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Khon Kaen,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Khon Kaen,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Khon Kaen,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Khon Kaen,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Khon Kaen,Northeast,Provincial,Silk Festival,เทศกาลไหมและประเพณีผูกเสี่ยว,Nov,High Season,Culture
+Krabi,South,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Krabi,South,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Krabi,South,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Krabi,South,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Krabi,South,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Krabi,South,Regional,Sart Duan Sip,ประเพณีสารทเดือนสิบ,Oct,Low Season,Tradition
+Krabi,South,Provincial,Andaman Festival,เทศกาลเบิกฟ้าอันดามัน,Nov,High Season,Event
+Lampang,North,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Lampang,North,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Lampang,North,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Lampang,North,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Lampang,North,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Lampang,North,Regional,Northern Yi Peng,ประเพณียี่เป็ง (ระดับภาค),Nov,High Season,Tradition
+Lampang,North,Provincial,Luang Wiang Lakhon,งานหลวงเวียงละคอน,Feb,High Season,Tradition
+Lamphun,North,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Lamphun,North,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Lamphun,North,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Lamphun,North,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Lamphun,North,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Lamphun,North,Regional,Northern Yi Peng,ประเพณียี่เป็ง (ระดับภาค),Nov,High Season,Tradition
+Lamphun,North,Provincial,Salak Yom Festival,ประเพณีสลากย้อม,Sep,Low Season,Tradition
+Loei,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Loei,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Loei,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Loei,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Loei,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Loei,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Loei,Northeast,Provincial,Phi Ta Khon Festival,ประเพณีผีตาโขน,Jun,Low Season,Culture
+Loei,Northeast,Provincial,Phu Rua Poinsettia Festival,เทศกาลต้นคริสต์มาสภูเรือ,Dec,High Season,Nature
+Lopburi,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Lopburi,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Lopburi,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Lopburi,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Lopburi,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Lopburi,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Lopburi,Central,Provincial,Monkey Banquet,งานเลี้ยงโต๊ะจีนลิง,Nov,High Season,Event
+Lopburi,Central,Provincial,Sunflower Blooming Festival,เทศกาลทุ่งทานตะวันบาน,Dec,High Season,Nature
+Mae Hong Son,North,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Mae Hong Son,North,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Mae Hong Son,North,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Mae Hong Son,North,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Mae Hong Son,North,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Mae Hong Son,North,Regional,Northern Yi Peng,ประเพณียี่เป็ง (ระดับภาค),Nov,High Season,Tradition
+Mae Hong Son,North,Provincial,Poy Sang Long,ประเพณีปอยส่างลอง,Apr,High Season,Culture
+Mae Hong Son,North,Provincial,Bua Tong Blossom Festival,เทศกาลดอกบัวตองบาน,Nov,High Season,Nature
+Maha Sarakham,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Maha Sarakham,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Maha Sarakham,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Maha Sarakham,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Maha Sarakham,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Maha Sarakham,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Maha Sarakham,Northeast,Provincial,Bun Boek Fa Festival,ประเพณีบุญเบิกฟ้า,Feb,High Season,Tradition
+Mukdahan,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Mukdahan,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Mukdahan,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Mukdahan,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Mukdahan,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Mukdahan,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Mukdahan,Northeast,Provincial,Boat Racing,ประเพณีแข่งเรือยาว,Oct,Low Season,Tradition
+Nakhon Nayok,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Nakhon Nayok,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Nakhon Nayok,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Nakhon Nayok,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Nakhon Nayok,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Nakhon Nayok,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Nakhon Nayok,Central,Provincial,Sweet Plum Mango Festival,เทศกาลมะปรางหวาน,Mar,High Season,Agriculture
+Nakhon Pathom,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Nakhon Pathom,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Nakhon Pathom,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Nakhon Pathom,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Nakhon Pathom,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Nakhon Pathom,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Nakhon Pathom,Central,Provincial,Phra Pathom Chedi Festival,งานนมัสการองค์พระปฐมเจดีย์,Nov,High Season,Religious
+Nakhon Phanom,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Nakhon Phanom,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Nakhon Phanom,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Nakhon Phanom,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Nakhon Phanom,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Nakhon Phanom,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Nakhon Phanom,Northeast,Provincial,Illuminated Boat,ประเพณีไหลเรือไฟ,Oct,Low Season,Tradition
+Nakhon Ratchasima,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Nakhon Ratchasima,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Nakhon Ratchasima,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Nakhon Ratchasima,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Nakhon Ratchasima,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Nakhon Ratchasima,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Nakhon Ratchasima,Northeast,Provincial,Thao Suranari Festival,งานฉลองวันแห่งชัยชนะของท้าวสุรนารี,Mar,High Season,History
+Nakhon Ratchasima,Northeast,Provincial,Jim Thompson Farm Tour,จิม ทอมป์สัน ฟาร์มทัวร์,Dec,High Season,Agriculture
+Nakhon Sawan,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Nakhon Sawan,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Nakhon Sawan,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Nakhon Sawan,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Nakhon Sawan,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Nakhon Sawan,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Nakhon Sawan,Central,Provincial,Pak Nam Pho Chinese New Year,ตรุษจีนปากน้ำโพ,Feb,High Season,Culture
+Nakhon Si Thammarat,South,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Nakhon Si Thammarat,South,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Nakhon Si Thammarat,South,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Nakhon Si Thammarat,South,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Nakhon Si Thammarat,South,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,Low Season,Tradition
+Nakhon Si Thammarat,South,Regional,Sart Duan Sip,ประเพณีสารทเดือนสิบ,Oct,Low Season,Tradition
+Nakhon Si Thammarat,South,Provincial,Chak Phra Festival,ประเพณีชักพระ,Oct,Low Season,Tradition
+Nan,North,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Nan,North,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Nan,North,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Nan,North,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Nan,North,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Nan,North,Regional,Northern Yi Peng,ประเพณียี่เป็ง (ระดับภาค),Nov,High Season,Tradition
+Nan,North,Provincial,Long Boat Racing,ประเพณีแข่งเรือลอยน้ำ,Oct,Low Season,Tradition
+Narathiwat,South,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Narathiwat,South,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Narathiwat,South,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Narathiwat,South,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Narathiwat,South,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,Low Season,Tradition
+Narathiwat,South,Regional,Sart Duan Sip,ประเพณีสารทเดือนสิบ,Oct,Low Season,Tradition
+Narathiwat,South,Provincial,Kolak Boat Racing,แข่งขันเรือกอและ,Sep,High Season,Tradition
+Nong Bua Lamphu,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Nong Bua Lamphu,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Nong Bua Lamphu,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Nong Bua Lamphu,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Nong Bua Lamphu,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Nong Bua Lamphu,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Nong Bua Lamphu,Northeast,Provincial,Naresuan Festival,งานสักการะสมเด็จพระนเรศวรมหาราช,Jan,High Season,History
+Nong Khai,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Nong Khai,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Nong Khai,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Nong Khai,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Nong Khai,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Nong Khai,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Nong Khai,Northeast,Provincial,Naga Fireball Festival,ประเพณีบุญบั้งไฟพญานาค,Oct,Low Season,Tradition
+Nonthaburi,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Nonthaburi,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Nonthaburi,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Nonthaburi,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Nonthaburi,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Nonthaburi,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Nonthaburi,Central,Provincial,Mon Festival,ประเพณีสงกรานต์มอญ,Apr,High Season,Culture
+Pathum Thani,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Pathum Thani,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Pathum Thani,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Pathum Thani,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Pathum Thani,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Pathum Thani,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Pathum Thani,Central,Provincial,Lotus Festival,เทศกาลบัวบาน,Jul,Low Season,Nature
+Pattani,South,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Pattani,South,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Pattani,South,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Pattani,South,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Pattani,South,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,Low Season,Tradition
+Pattani,South,Regional,Sart Duan Sip,ประเพณีสารทเดือนสิบ,Oct,Low Season,Tradition
+Pattani,South,Provincial,Lim Ko Niao Festival,งานสมโภชเจ้าแม่ลิ้มกอเหนี่ยว,Feb,High Season,Culture
+Phang Nga,South,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Phang Nga,South,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Phang Nga,South,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Phang Nga,South,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Phang Nga,South,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Phang Nga,South,Regional,Sart Duan Sip,ประเพณีสารทเดือนสิบ,Oct,Low Season,Tradition
+Phang Nga,South,Provincial,Sea Turtle Release,ประเพณีปล่อยเต่าทะเล,Mar,High Season,Nature
+Phatthalung,South,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Phatthalung,South,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Phatthalung,South,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Phatthalung,South,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Phatthalung,South,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,Low Season,Tradition
+Phatthalung,South,Regional,Sart Duan Sip,ประเพณีสารทเดือนสิบ,Oct,Low Season,Tradition
+Phatthalung,South,Provincial,Manora Festival,เทศกาลมโนราห์,Apr,High Season,Culture
+Phayao,North,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Phayao,North,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Phayao,North,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Phayao,North,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Phayao,North,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Phayao,North,Regional,Northern Yi Peng,ประเพณียี่เป็ง (ระดับภาค),Nov,High Season,Tradition
+Phayao,North,Provincial,Winter Fair,งานฤดูหนาวและของดีเมืองพะเยา,Dec,High Season,Event
+Phetchabun,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Phetchabun,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Phetchabun,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Phetchabun,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Phetchabun,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Phetchabun,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Phetchabun,Central,Provincial,Um Phra Lam Nam,ประเพณีอุ้มพระดำน้ำ,Sep,Low Season,Tradition
+Phetchabun,Central,Provincial,Khao Kho Floral Festival,เทศกาลชมดอกไม้เขาค้อ / ภูทับเบิก,Dec,High Season,Nature
+Phetchaburi,West,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Phetchaburi,West,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Phetchaburi,West,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Phetchaburi,West,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Phetchaburi,West,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Phetchaburi,West,Provincial,Phra Nakhon Khiri Fair,งานพระนครคีรี,Feb,High Season,History
+Phichit,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Phichit,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Phichit,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Phichit,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Phichit,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Phichit,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Phichit,Central,Provincial,Boat Racing,ประเพณีแข่งเรือยาว,Sep,Low Season,Tradition
+Phitsanulok,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Phitsanulok,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Phitsanulok,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Phitsanulok,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Phitsanulok,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Phitsanulok,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Phitsanulok,Central,Provincial,Phra Buddha Chinarat Fair,งานสมโภชพระพุทธชินราช,Feb,High Season,Religious
+Phrae,North,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Phrae,North,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Phrae,North,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Phrae,North,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Phrae,North,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Phrae,North,Regional,Northern Yi Peng,ประเพณียี่เป็ง (ระดับภาค),Nov,High Season,Tradition
+Phrae,North,Provincial,Phra That Cho Hae Festival,ประเพณีไหว้พระธาตุช่อแฮ,Mar,High Season,Religious
+Phuket,South,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Phuket,South,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Phuket,South,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Phuket,South,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Phuket,South,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Phuket,South,Regional,Sart Duan Sip,ประเพณีสารทเดือนสิบ,Oct,Low Season,Tradition
+Phuket,South,Provincial,Old Phuket Town Festival,เทศกาลเมืองเก่าภูเก็ต,Feb,High Season,Culture
+Phuket,South,Provincial,Vegetarian Festival,เทศกาลกินเจ,Oct,Low Season,Tradition
+Prachinburi,East,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Prachinburi,East,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Prachinburi,East,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Prachinburi,East,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Prachinburi,East,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Prachinburi,East,Provincial,Agricultural Fair,งานวันเกษตรปราจีนบุรี,Jun,Low Season,Agriculture
+Prachuap Khiri Khan,West,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Prachuap Khiri Khan,West,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Prachuap Khiri Khan,West,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Prachuap Khiri Khan,West,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Prachuap Khiri Khan,West,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Prachuap Khiri Khan,West,Provincial,Tourism Festival,เทศกาลท่องเที่ยวประจวบฯ,Mar,High Season,Event
+Ranong,South,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Ranong,South,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Ranong,South,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Ranong,South,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Ranong,South,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Ranong,South,Regional,Sart Duan Sip,ประเพณีสารทเดือนสิบ,Oct,Low Season,Tradition
+Ranong,South,Provincial,Mineral Water Festival,เทศกาลอาบน้ำแร่,Mar,High Season,Event
+Ratchaburi,West,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Ratchaburi,West,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Ratchaburi,West,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Ratchaburi,West,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Ratchaburi,West,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Ratchaburi,West,Provincial,Dragon Jar Festival,เทศกาลโอ่งมังกร,Feb,High Season,Culture
+Rayong,East,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Rayong,East,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Rayong,East,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Rayong,East,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Rayong,East,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Rayong,East,Provincial,Rayong Fruit Festival,เทศกาลผลไม้และของดีเมืองระยอง,May,Low Season,Agriculture
+Rayong,East,Provincial,Sunthon Phu Day,วันสุนทรภู่,Jun,Low Season,Culture
+Roi Et,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Roi Et,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Roi Et,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Roi Et,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Roi Et,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Roi Et,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Roi Et,Northeast,Provincial,Bun Phawet,ประเพณีบุญผะเหวด,Mar,High Season,Tradition
+Sa Kaeo,East,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Sa Kaeo,East,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Sa Kaeo,East,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Sa Kaeo,East,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Sa Kaeo,East,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Sa Kaeo,East,Provincial,Cantaloupe Festival,เทศกาลแคนตาลูป,Apr,High Season,Agriculture
+Sakonnakhon,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Sakonnakhon,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Sakonnakhon,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Sakonnakhon,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Sakonnakhon,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Sakonnakhon,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Sakonnakhon,Northeast,Provincial,Wax Castle Festival,ประเพณีแห่ปราสาทผึ้ง,Oct,Low Season,Tradition
+Samut Prakan,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Samut Prakan,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Samut Prakan,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Samut Prakan,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Samut Prakan,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Samut Prakan,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Samut Prakan,Central,Provincial,Phra Samut Chedi Fair,งานนมัสการองค์พระสมุทรเจดีย์,Oct,Low Season,Religious
+Samut Sakhon,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Samut Sakhon,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Samut Sakhon,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Samut Sakhon,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Samut Sakhon,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Samut Sakhon,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Samut Sakhon,Central,Provincial,Seafood Festival,เทศกาลอาหารทะเล,Feb,High Season,Food
+Samut Songkhram,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Samut Songkhram,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Samut Songkhram,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Samut Songkhram,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Samut Songkhram,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Samut Songkhram,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Samut Songkhram,Central,Provincial,Mackerel Festival,เทศกาลกินปลาทู,Dec,High Season,Food
+Saraburi,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Saraburi,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Saraburi,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Saraburi,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Saraburi,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Saraburi,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Saraburi,Central,Provincial,Tak Bat Dok Mai,ประเพณีตักบาตรดอกไม้,Jul,Low Season,Tradition
+Satun,South,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Satun,South,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Satun,South,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Satun,South,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Satun,South,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Satun,South,Regional,Sart Duan Sip,ประเพณีสารทเดือนสิบ,Oct,Low Season,Tradition
+Satun,South,Provincial,Kite Festival,มหกรรมว่าวประเพณี,Feb,High Season,Culture
+Sing Buri,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Sing Buri,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Sing Buri,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Sing Buri,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Sing Buri,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Sing Buri,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Sing Buri,Central,Provincial,King Narai Festival,แผ่นดินสมเด็จพระนารายณ์,Feb,High Season,History
+Sisaket,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Sisaket,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Sisaket,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Sisaket,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Sisaket,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Sisaket,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Sisaket,Northeast,Provincial,Rambutan & Durian Festival,เทศกาลเงาะทุเรียน,Jun,Low Season,Agriculture
+Songkhla,South,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Songkhla,South,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Songkhla,South,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Songkhla,South,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Songkhla,South,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,Low Season,Tradition
+Songkhla,South,Regional,Sart Duan Sip,ประเพณีสารทเดือนสิบ,Oct,Low Season,Tradition
+Songkhla,South,Provincial,Hat Yai Midnight Songkran,หาดใหญ่ มิดไนท์ สงกรานต์,Apr,High Season,Event
+Songkhla,South,Provincial,Traditional Day,วันสาร์ทไทย,Sep,High Season,Tradition
+Sukhothai,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Sukhothai,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Sukhothai,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Sukhothai,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Sukhothai,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Sukhothai,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Sukhothai,Central,Provincial,Loi Krathong Candle Festival,ประเพณีลอยกระทงเผาเทียนเล่นไฟ,Nov,High Season,Tradition
+Suphan Buri,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Suphan Buri,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Suphan Buri,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Suphan Buri,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Suphan Buri,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Suphan Buri,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Suphan Buri,Central,Provincial,Don Chedi Memorial,งานอนุสรณ์ดอนเจดีย์,Jan,High Season,History
+Suphan Buri,Central,Provincial,Yellow Star Flowers Blooming,ทุ่งดอกเหลืองปรีดียาธร,Mar,High Season,Nature
+Surat Thani,South,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Surat Thani,South,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Surat Thani,South,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Surat Thani,South,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Surat Thani,South,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,Low Season,Tradition
+Surat Thani,South,Regional,Sart Duan Sip,ประเพณีสารทเดือนสิบ,Oct,Low Season,Tradition
+Surat Thani,South,Provincial,Chak Phra & Boat Racing,ประเพณีชักพระและแข่งเรือ,Oct,Low Season,Tradition
+Surin,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Surin,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Surin,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Surin,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Surin,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Surin,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Surin,Northeast,Provincial,Elephant Round-up,งานแสดงช้างสุรินทร์,Nov,High Season,Event
+Tak,West,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Tak,West,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Tak,West,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Tak,West,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Tak,West,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Tak,West,Provincial,Taksin Maharat Festival,งานตากสินมหาราช,Dec,High Season,History
+Trang,South,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Trang,South,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Trang,South,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Trang,South,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Trang,South,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Trang,South,Regional,Sart Duan Sip,ประเพณีสารทเดือนสิบ,Oct,Low Season,Tradition
+Trang,South,Provincial,Underwater Wedding,วิวาห์ใต้สมุทร,Feb,High Season,Event
+Trat,East,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Trat,East,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Trat,East,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Trat,East,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Trat,East,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Trat,East,Provincial,Trat Memorial Day,งานวันตราดรำลึก,Mar,High Season,History
+Ubon Ratchathani,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Ubon Ratchathani,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Ubon Ratchathani,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Ubon Ratchathani,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Ubon Ratchathani,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Ubon Ratchathani,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Ubon Ratchathani,Northeast,Provincial,Candle Festival,ประเพณีแห่เทียนพรรษา,Jul,Low Season,Tradition
+Udon Thani,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Udon Thani,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Udon Thani,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Udon Thani,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Udon Thani,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Udon Thani,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Udon Thani,Northeast,Provincial,Red Lotus Sea Festival,เทศกาลทะเลบัวแดง,Jan,High Season,Nature
+Udon Thani,Northeast,Provincial,Thung Si Mueang Festival,งานทุ่งศรีเมือง,Dec,High Season,Event
+Uthai Thani,Central,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Uthai Thani,Central,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Uthai Thani,Central,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Uthai Thani,Central,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Uthai Thani,Central,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Uthai Thani,Central,Regional,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Religious
+Uthai Thani,Central,Provincial,Tak Bat Devo,ประเพณีตักบาตรเทโว,Oct,Low Season,Tradition
+Uthai Thani,Central,Provincial,Kaen Makrut Winter Festival,หนาวนี้ที่แก่นมะกรูด,Dec,High Season,Nature
+Uttaradit,North,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Uttaradit,North,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Uttaradit,North,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Uttaradit,North,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Uttaradit,North,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Uttaradit,North,Regional,Northern Yi Peng,ประเพณียี่เป็ง (ระดับภาค),Nov,High Season,Tradition
+Uttaradit,North,Provincial,Langsat Festival,เทศกาลลางสาดหวาน,Sep,Low Season,Agriculture
+Yala,South,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Yala,South,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Yala,South,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Yala,South,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Yala,South,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,Low Season,Tradition
+Yala,South,Regional,Sart Duan Sip,ประเพณีสารทเดือนสิบ,Oct,Low Season,Tradition
+Yala,South,Provincial,Asean Barred Ground Dove,มหกรรมแข่งขันนกเขาชวา,Mar,High Season,Culture
+Yasothon,Northeast,National,New Year's Day,วันขึ้นปีใหม่,Jan,High Season,Holiday
+Yasothon,Northeast,National,Chinese New Year,วันตรุษจีน,Feb,High Season,Culture
+Yasothon,Northeast,National,Makha Bucha Day,วันมาฆบูชา,Feb,High Season,Religious
+Yasothon,Northeast,National,Songkran Festival,วันสงกรานต์,Apr,High Season,Tradition
+Yasothon,Northeast,National,Loy Krathong Festival,ประเพณีลอยกระทง,Nov,High Season,Tradition
+Yasothon,Northeast,Regional,Bun Bang Fai (Rocket Festival),ประเพณีบุญบั้งไฟ,May,Low Season,Tradition
+Yasothon,Northeast,Provincial,Bun Bang Fai (Provincial),ประเพณีบุญบั้งไฟ (จังหวัด),May,Low Season,Tradition
