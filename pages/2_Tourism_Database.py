@@ -375,3 +375,4 @@ if 'Date' in df.columns:
     st.plotly_chart(fig, use_container_width=True)
 else:
     st.error("ไม่พบคอลัมน์ 'Date' สำหรับการวิเคราะห์แนวโน้มตามเวลา")
+
