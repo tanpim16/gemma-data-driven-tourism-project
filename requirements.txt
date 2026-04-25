@@ -1,6 +1,6 @@
 streamlit
 pandas
-plotly
-duckdb
-openpyxl
 google-generativeai
+plotly
+openpyxl
+reportlab
