@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-st.set_page_config(page_title="CitySmart | Market Analysis", page_icon="📈")
+st.set_page_config(page_title="CitySmart | Market Analysis", page_icon="📈", layout="wide")
 
 # CSS บีบช่องไฟให้เหมือนหน้าแรก
 st.markdown("""
@@ -14,9 +14,16 @@ st.markdown("""
 
 @st.cache_data
 def load_data():
-    df_t = pd.read_csv('data/master_tourism_analysis.csv')
-    df_f = pd.read_excel('data/Thailand_Festival_Master.xlsx')
-    return df_t.dropna(subset=['ProvinceEN']), df_f
+    try:
+        df_t = pd.read_csv('data/master_tourism_analysis.csv')
+        df_f = pd.read_excel('data/Thailand_Festival_Master.xlsx')
+        return df_t.dropna(subset=['ProvinceEN']), df_f
+    except FileNotFoundError as e:
+        st.error(f"ไม่พบไฟล์ข้อมูล: {e}")
+        st.stop()
+    except Exception as e:
+        st.error(f"เกิดข้อผิดพลาดในการโหลดข้อมูล: {e}")
+        st.stop()
 
 try:
     df_tour, df_fest = load_data()

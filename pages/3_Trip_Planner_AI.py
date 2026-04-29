@@ -1,5 +1,5 @@
 import streamlit as st
-import google.generativeai as genai
+from google import genai
 import pandas as pd
 from datetime import datetime, timedelta
 from reportlab.lib.pagesizes import A4
@@ -383,8 +383,7 @@ def create_pdf(content_dict, province, lang='TH'):
 
 # ─── AI Setup ─────────────────────────────────────────────────────────────────
 try:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    model = genai.GenerativeModel('gemma-4-31b-it')
+    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 except Exception as e:
     st.error(f"ไม่สามารถเชื่อมต่อ AI ได้: {e}")
     st.stop()
@@ -771,9 +770,9 @@ def clean_itinerary_response(text, days=3):
 def call_ai_strict(prompt, mode="general", max_retries=2, fallback_text=""):
     for attempt in range(max_retries):
         try:
-            response = model.generate_content(
+            response = client.models.generate_content(model="gemma-4-31b-it", 
                 prompt,
-                generation_config=genai.types.GenerationConfig(
+                config=genai.types.GenerateContentConfig(
                     temperature=0.35,
                     top_p=0.85,
                     top_k=30,

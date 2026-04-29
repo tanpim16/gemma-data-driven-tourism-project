@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(page_title="CitySmart | Introduction", page_icon="🏠")
+st.set_page_config(page_title="CitySmart | Introduction", page_icon="🏠", layout="wide", initial_sidebar_state="expanded")
 
 
 # --- 🪄 Magic CSS: บีบช่องไฟให้ใกล้กันขึ้น ---

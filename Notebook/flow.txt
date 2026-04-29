@@ -1,0 +1,9 @@
+git add .
+git commit -m "Update"
+git branch -M main
+git push -u origin main
+
+
+    model = genai.GenerativeModel('gemma-4-31b-it')
+
+python -m streamlit run app.py
