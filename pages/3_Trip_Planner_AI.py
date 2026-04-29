@@ -770,8 +770,7 @@ def clean_itinerary_response(text, days=3):
 def call_ai_strict(prompt, mode="general", max_retries=2, fallback_text=""):
     for attempt in range(max_retries):
         try:
-            response = client.models.generate_content(model="gemma-4-31b-it", 
-                prompt,
+            response = client.models.generate_content(model="gemma-4-31b-it", contents=prompt,
                 config=genai.types.GenerateContentConfig(
                     temperature=0.35,
                     top_p=0.85,
