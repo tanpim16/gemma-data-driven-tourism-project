@@ -145,7 +145,7 @@ with st.sidebar:
 # ── Page header ───────────────────────────────────────────────────────────────
 st.markdown("<h2 style='color:#1E3D59;margin-bottom:2px;'>📈 Market Analysis</h2>",
             unsafe_allow_html=True)
-st.caption("เจาะลึกสถิติการท่องเที่ยวทั่วไทย 3 ปี (2566–2568) · 76 จังหวัด · 21 เมืองหลัก · 55 เมืองรอง")
+st.caption("เจาะลึกสถิติการท่องเที่ยวทั่วไทย 3 ปี (2566–2568) · 77 จังหวัด · 22 เมืองหลัก · 55 เมืองรอง")
 
 tab_national, tab_province, tab_festival = st.tabs([
     "🌐 ภาพรวมประเทศ", "📍 รายจังหวัด", "🎪 เทศกาลทั่วไทย",
@@ -624,6 +624,211 @@ with tab_province:
                 )
     else:
         st.caption("ยังไม่มีข้อมูลเทศกาลในจังหวัดนี้")
+
+    st.divider()
+
+    # ── Festival Impact Summary (national, all years) ─────────────────────────
+    st.markdown("#### 📌 ผลกระทบเทศกาลต่อรายได้ (เปรียบเทียบรายปีทั้งประเทศ)")
+    st.write("เปรียบเทียบรายได้เดือนมีเทศกาลกับไม่มีเทศกาล ทั่วทุกจังหวัดในประเทศ (หน่วย: ล้านล้านบาท)")
+
+    _month_order_en   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    _month_names_full = {
+        'Jan':'มกราคม','Feb':'กุมภาพันธ์','Mar':'มีนาคม','Apr':'เมษายน',
+        'May':'พฤษภาคม','Jun':'มิถุนายน','Jul':'กรกฎาคม','Aug':'สิงหาคม',
+        'Sep':'กันยายน','Oct':'ตุลาคม','Nov':'พฤศจิกายน','Dec':'ธันวาคม',
+    }
+    _fest_months_set  = set(df_fest_events['Month'].dropna().astype(str).str.strip().tolist())
+
+    _df_impact = df_tour.copy()
+    _df_impact['Has_Festival'] = _df_impact['Month'].isin(_fest_months_set)
+    _years_all = sorted(_df_impact['Year'].dropna().unique().tolist())
+    _pastel    = ['#FFE4E1','#E6E6FA','#F0FFF0','#FFF0F5','#F0F8FF']
+
+    if _years_all:
+        _cols_y = st.columns(len(_years_all))
+        for _i, _year in enumerate(_years_all):
+            _yd     = _df_impact[_df_impact['Year'] == _year]
+            _tfest  = _yd[_yd['Has_Festival']]['total_revenue'].sum() / 1_000_000
+            _tnfest = _yd[~_yd['Has_Festival']]['total_revenue'].sum() / 1_000_000
+            _pct    = ((_tfest - _tnfest) / _tnfest * 100) if _tnfest > 0 else 0
+            _bg     = _pastel[_i % len(_pastel)]
+            with _cols_y[_i]:
+                _tc = "#228B22" if _pct >= 0 else "#B22222"
+                _ti = "📈 +" if _pct >= 0 else "📉 "
+                st.html(f"""
+                <div style="background:{_bg};padding:20px;border-radius:15px;border:1px solid #eaeaea;box-shadow:2px 4px 10px rgba(0,0,0,0.05);">
+                    <h3 style="color:#333;margin-top:0;text-align:center;">📅 ปี {int(_year)}</h3>
+                    <hr style="border-top:1px solid #ddd;margin:10px 0;">
+                    <p style="color:#555;font-size:14px;margin-bottom:2px;">รายได้เดือนมีเทศกาล</p>
+                    <h2 style="color:#00008B;margin-top:0;margin-bottom:5px;font-size:26px;">
+                        {_tfest:,.2f} <span style="font-size:16px;color:#444;">ล้านล้านบาท</span>
+                    </h2>
+                    <p style="color:{_tc};font-weight:bold;font-size:16px;margin-top:0;">
+                        {_ti}{_pct:,.1f}%
+                    </p>
+                    <p style="color:#555;font-size:14px;margin-bottom:2px;margin-top:15px;">รายได้เดือนไม่มีเทศกาล</p>
+                    <h3 style="color:#444;margin-top:0;font-size:20px;">
+                        {_tnfest:,.2f} <span style="font-size:14px;color:#555;">ล้านล้านบาท</span>
+                    </h3>
+                </div>
+                """)
+
+    st.divider()
+
+    # ── Monthly Revenue Bar Chart with Festival Highlight ─────────────────────
+    st.markdown(f"#### 📊 รายได้รายเดือนพร้อมไฮไลต์เทศกาล — {selected_province_th}")
+
+    _prov_df_bar  = df_tour[df_tour['ProvinceEN'] == selected_province].copy()
+    _avail_yr_bar = sorted(_prov_df_bar['Year'].unique().tolist())
+    _bar_year = st.selectbox(
+        "📅 เลือกปีสำหรับกราฟรายเดือน", _avail_yr_bar,
+        index=len(_avail_yr_bar) - 1 if _avail_yr_bar else 0,
+        key="db_bar_year",
+    )
+
+    _prov_mo_bar = _prov_df_bar[_prov_df_bar['Year'] == _bar_year].copy()
+    _prov_mo_bar['Has_Festival'] = _prov_mo_bar['Month'].isin(_fest_months_set)
+    _fest_col_name = 'Festival_Name_TH' if 'Festival_Name_TH' in df_fest_events.columns else 'Festival_Name_EN'
+
+    _chart_rows = []
+    for _m in _month_order_en:
+        _md  = _prov_mo_bar[_prov_mo_bar['Month'] == _m]
+        _rev = float(_md['total_revenue'].iloc[0]) if len(_md) > 0 else 0.0
+        _hf  = bool(_md['Has_Festival'].iloc[0])   if len(_md) > 0 else False
+        _fnames = "ไม่มี"
+        if _hf:
+            _fests  = df_fest_events[df_fest_events['Month'] == _m][_fest_col_name].dropna().tolist()
+            _uf     = list(dict.fromkeys(_fests))
+            _fnames = "<br>".join(_uf) if _uf else "มีเทศกาล"
+        _chart_rows.append({
+            'Month': _month_names_full[_m],
+            'Revenue': _rev,
+            'Festival_Status': 'มีเทศกาล' if _hf else 'ไม่มีเทศกาล',
+            'Festivals': _fnames,
+        })
+
+    _chart_df = pd.DataFrame(_chart_rows)
+    _fig_bar  = px.bar(
+        _chart_df, x='Month', y='Revenue', color='Festival_Status',
+        hover_data={'Festivals': True, 'Festival_Status': False},
+        color_discrete_map={'มีเทศกาล': '#00008B', 'ไม่มีเทศกาล': '#87CEFA'},
+        category_orders={'Month': [_month_names_full[m] for m in _month_order_en]},
+        title=f'รายได้รายเดือน — {selected_province_th} ({int(_bar_year)})',
+        labels={'Revenue':'รายได้ (ล้านบาท)','Month':'เดือน','Festival_Status':'สถานะ','Festivals':'เทศกาล'},
+    )
+    _fig_bar.update_traces(
+        hovertemplate="<b>เดือน:</b> %{x}<br><b>รายได้: %{y:,.2f} ล้านบาท</b><br><b>เทศกาล:</b><br>%{customdata[0]}<extra></extra>",
+        texttemplate='%{y:,.1f}', textposition='outside',
+    )
+    _fig_bar.update_layout(
+        xaxis_title='เดือน', yaxis_title='รายได้ (ล้านบาท)', showlegend=True, height=500,
+        uniformtext_minsize=8, uniformtext_mode='hide', margin=dict(t=50, l=25, r=25, b=25),
+    )
+    st.plotly_chart(_fig_bar, use_container_width=True)
+
+    st.divider()
+
+    # ── Multi-Province Revenue Comparison ────────────────────────────────────
+    st.markdown("#### 📌 เปรียบเทียบรายได้ระดับจังหวัดและผลกระทบเทศกาล")
+    st.write("เลือกเปรียบเทียบจังหวัดได้สูงสุด 5 จังหวัด · เลือกดูข้อมูลแบบข้ามปีได้ (หน่วย: ล้านบาท)")
+
+    _provs_all_th = sorted(df_tour['ProvinceThai'].dropna().unique().tolist())
+    _mc1, _mc2 = st.columns(2)
+    with _mc1:
+        st.subheader("🏢 เลือกจังหวัด (สูงสุด 5 จังหวัด)")
+        _sel_provs = st.multiselect(
+            "จังหวัด:", options=_provs_all_th,
+            default=_provs_all_th[:2] if len(_provs_all_th) > 1 else _provs_all_th,
+            key="db_multi_prov",
+        )
+    with _mc2:
+        st.subheader("📅 เลือกปี (เลือกได้มากกว่า 1 ปี)")
+        _sel_yrs_multi = st.multiselect(
+            "ปีสำหรับการเปรียบเทียบ:",
+            options=sorted(df_tour['Year'].unique().tolist()),
+            default=[sorted(df_tour['Year'].unique().tolist())[-1]],
+            key="db_multi_yr",
+        )
+
+    if len(_sel_provs) > 5:
+        st.warning("⚠️ กรุณาเลือกเปรียบเทียบสูงสุดไม่เกิน 5 จังหวัด (ลบจังหวัดออกก่อนเพื่อดูข้อมูล)")
+    elif _sel_provs and _sel_yrs_multi:
+        _filt_cmp    = df_tour[df_tour['ProvinceThai'].isin(_sel_provs) & df_tour['Year'].isin(_sel_yrs_multi)].copy()
+        _prov_mo_cmp = _filt_cmp.groupby(['ProvinceThai','Year','Month'])['total_revenue'].sum().reset_index()
+        _prov_mo_cmp['Month'] = pd.Categorical(_prov_mo_cmp['Month'], categories=_month_order_en, ordered=True)
+        _prov_mo_cmp = _prov_mo_cmp.sort_values(['ProvinceThai','Year','Month'])
+        _prov_mo_cmp['MonthTH']       = _prov_mo_cmp['Month'].map(_month_names_full)
+        _prov_mo_cmp['Province_Year'] = _prov_mo_cmp['ProvinceThai'] + ' (' + _prov_mo_cmp['Year'].astype(str) + ')'
+        _prov_mo_cmp['Festival_Status'] = _prov_mo_cmp['Month'].apply(
+            lambda x: 'มีเทศกาล' if x in _fest_months_set else 'ไม่มีเทศกาล'
+        )
+
+        _pink = ['#FCE4EC','#F8BBD0','#F48FB1','#F06292','#EC407A','#E91E63','#D81B60','#C2185B','#AD1457','#880E4F']
+        _purp = ['#F3E5F5','#E1BEE7','#CE93D8','#BA68C8','#AB47BC','#9C27B0','#8E24AA','#7B1FA2','#6A1B9A','#4A148C']
+        _grn  = ['#004b23','#006400','#007200','#008000','#38b000','#70e000','#9ef01a','#ccff33','#e0ff4f','#f4ff81']
+        _cmap = {}
+        for _pi, _pv in enumerate(_sel_provs):
+            for _yr in _sel_yrs_multi:
+                _lbl = f"{_pv} ({_yr})"
+                if   str(_yr) == '2566': _cmap[_lbl] = _pink[(_pi * 2) % 10]
+                elif str(_yr) == '2567': _cmap[_lbl] = _purp[(_pi * 2) % 10]
+                elif str(_yr) == '2568': _cmap[_lbl] = _grn[(_pi * 2) % 10]
+                else:                    _cmap[_lbl] = px.colors.qualitative.Plotly[_pi % 10]
+
+        _fig_cmp = px.line(
+            _prov_mo_cmp, x='MonthTH', y='total_revenue', color='Province_Year',
+            title="แนวโน้มรายได้รายเดือนแยกตามจังหวัดและปี (คลิกที่ Legend เพื่อซ่อน/แสดง)",
+            markers=True, color_discrete_map=_cmap,
+            hover_data={'ProvinceThai':True,'Festival_Status':True,'MonthTH':False,'Province_Year':False},
+            category_orders={'MonthTH': [_month_names_full[m] for m in _month_order_en]},
+            labels={'total_revenue':'รายได้ (ล้านบาท)','MonthTH':'เดือน','Province_Year':'จังหวัด (ปี)'},
+        )
+        _fig_cmp.update_traces(
+            hovertemplate="<b>จังหวัด:</b> %{customdata[0]}<br><b>รายได้:</b> %{y:,.2f} ล้านบาท<br><b>สถานะ:</b> %{customdata[1]}<extra></extra>",
+            line=dict(width=3), marker=dict(size=8),
+        )
+        _fig_cmp.update_layout(
+            xaxis_title='เดือน', yaxis_title='รายได้ (ล้านบาท)',
+            legend_title='จังหวัด (ปี)', margin=dict(t=50, l=25, r=25, b=25),
+            hovermode="x unified",
+        )
+        st.plotly_chart(_fig_cmp, use_container_width=True)
+    else:
+        st.info("กรุณาเลือกจังหวัดและปีที่ต้องการเปรียบเทียบอย่างน้อย 1 รายการ")
+
+    st.divider()
+
+    # ── Time Series Analysis ──────────────────────────────────────────────────
+    st.markdown("#### 📌 แนวโน้มการท่องเที่ยวตามเวลา (Time Series)")
+
+    _metrics_map_ts = {
+        'total_revenue':  'รายได้รวม (Total Revenue)',
+        'total_guests':   'จำนวนผู้เข้าพัก (Total Guests)',
+        'total_visitors': 'จำนวนนักท่องเที่ยว (Total Visitors)',
+    }
+    _num_cols = df_tour.select_dtypes(include=['number']).columns.tolist()
+    _num_cols = [c for c in _num_cols if c not in ['Year','Month','No','Price_Index','Latitude','Longitude']]
+    _disp_map = {c: _metrics_map_ts.get(c, c) for c in _num_cols}
+
+    st.write("⚙️ **เลือกตัวชี้วัดที่ต้องการวิเคราะห์:**")
+    _sel_disp_ts   = st.selectbox("", options=list(_disp_map.values()),
+                                   label_visibility="collapsed", key="db_ts_metric")
+    _sel_metric_ts = [k for k, v in _disp_map.items() if v == _sel_disp_ts][0]
+
+    _ts_df = df_tour.copy()
+    _ts_df['Date'] = pd.to_datetime(
+        _ts_df['Year'].astype(str) + '-' +
+        _ts_df['Month'].map(MONTH_ENG_MAP).astype(str) + '-01'
+    )
+    _ts_agg  = _ts_df.groupby('Date')[_sel_metric_ts].sum().reset_index()
+    _y_lbl_ts = f'{_sel_disp_ts} (ล้านบาท)' if 'revenue' in _sel_metric_ts.lower() else f'{_sel_disp_ts} (คน)'
+    _fig_ts  = px.line(
+        _ts_agg, x='Date', y=_sel_metric_ts,
+        title=f"แนวโน้มตามเวลา: {_sel_disp_ts}",
+        color_discrete_sequence=['#00008B'],
+        labels={_sel_metric_ts: _y_lbl_ts, 'Date': 'วันที่ (Date)'},
+    )
+    st.plotly_chart(_fig_ts, use_container_width=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════

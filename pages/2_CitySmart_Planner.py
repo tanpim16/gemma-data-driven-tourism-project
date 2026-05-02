@@ -2,15 +2,13 @@ import streamlit as st
 import google.generativeai as genai
 import pandas as pd
 from datetime import datetime, timedelta
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
-from reportlab.pdfbase import pdfmetrics
-from reportlab.lib.enums import TA_CENTER
+from fpdf import FPDF
+from fpdf.enums import XPos, YPos
 import io
 import re
 import math
+import os
+import urllib.request
 
 # ─── Page Config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -50,7 +48,7 @@ html, body, [class*="css"] {
     margin: 0 !important;
 }
 .hero-title span {
-    background: linear-gradient(135deg, #0077B6 0%, #00B4D8 100%);
+    background: #0077B6;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -81,9 +79,9 @@ div[data-testid="stHorizontalBlock"] > div:has(.stRadio) {
 }
 .stRadio > div > label[data-baseweb="radio"] > div:first-child { display: none !important; }
 .stRadio > div > label:has(input:checked) {
-    background: linear-gradient(135deg, #0077B6 0%, #00B4D8 100%) !important;
-    color: white !important;
-    box-shadow: 0 2px 8px rgba(0,119,182,0.28);
+    background: #AED6F1 !important;
+    color: #1E3D59 !important;
+    box-shadow: 0 2px 8px rgba(174,214,241,0.5);
 }
 
 /* ── Form inputs ── */
@@ -106,21 +104,21 @@ label {
 
 /* ── Buttons ── */
 .stButton > button {
-    background: linear-gradient(135deg, #0077B6 0%, #00B4D8 100%) !important;
-    color: white !important; border: none !important;
+    background: #AED6F1 !important;
+    color: #1E3D59 !important; border: none !important;
     padding: 0.8rem 2.2rem !important; border-radius: 14px !important;
     font-weight: 700 !important; font-size: 1rem !important;
     font-family: 'Prompt', sans-serif !important;
-    box-shadow: 0 4px 16px rgba(0,119,182,0.28) !important;
+    box-shadow: 0 4px 16px rgba(174,214,241,0.5) !important;
     transition: transform 0.15s ease, box-shadow 0.15s ease !important;
 }
 .stButton > button:hover {
     transform: translateY(-1px) !important;
-    box-shadow: 0 6px 24px rgba(0,119,182,0.38) !important;
+    box-shadow: 0 6px 24px rgba(174,214,241,0.7) !important;
 }
 .stDownloadButton > button {
-    background: linear-gradient(135deg, #0077B6 0%, #00B4D8 100%) !important;
-    color: white !important; border: none !important;
+    background: #AED6F1 !important;
+    color: #1E3D59 !important; border: none !important;
     padding: 0.75rem 1.5rem !important; border-radius: 14px !important;
     font-weight: 700 !important; width: 100% !important;
     font-family: 'Prompt', sans-serif !important;
@@ -128,7 +126,7 @@ label {
 
 /* ── Twin Cities Banner ── */
 .twin-banner {
-    background: linear-gradient(135deg, rgba(0,119,182,0.07) 0%, rgba(0,180,216,0.06) 100%);
+    background: rgba(0,119,182,0.07);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(0,119,182,0.18);
@@ -143,7 +141,7 @@ label {
     color: #0077B6;
     flex-wrap: wrap;
 }
-.twin-arrow { color: #00B4D8; font-size: 1.05rem; font-weight: 700; }
+.twin-arrow { color: #0077B6; font-size: 1.05rem; font-weight: 700; }
 .twin-badge {
     font-size: 0.7rem;
     font-weight: 700;
@@ -151,7 +149,7 @@ label {
     border-radius: 20px;
     letter-spacing: 0.4px;
 }
-.twin-badge.main { background: linear-gradient(135deg,#0077B6,#00B4D8); color: white; }
+.twin-badge.main { background: #0077B6; color: white; }
 .twin-badge.sec  { background: linear-gradient(135deg,#FF6E40,#FF9A70); color: white; }
 
 /* ── Vertical Timeline ── */
@@ -166,7 +164,7 @@ label {
     top: 1.6rem;
     bottom: 1.6rem;
     width: 2px;
-    background: linear-gradient(180deg, #0077B6 0%, #00B4D8 60%, #90E0EF 100%);
+    background: #0077B6;
     border-radius: 2px;
 }
 .timeline-wrap.gem-wrap::before {
@@ -179,7 +177,7 @@ label {
     top: 0.95rem;
     width: 2rem;
     height: 2rem;
-    background: linear-gradient(135deg, #0077B6, #00B4D8);
+    background: #0077B6;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -218,7 +216,7 @@ label {
     font-family: 'Prompt', sans-serif;
     font-size: 0.97rem;
     font-weight: 700;
-    color: #0077B6;
+    color: #1E3D59;
     margin: 0 0 0.5rem 0;
     padding-bottom: 0.35rem;
     border-bottom: 1px solid rgba(0,119,182,0.1);
@@ -244,7 +242,7 @@ label {
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 20px;
-    background: linear-gradient(135deg, #0077B6, #00B4D8);
+    background: #0077B6;
     color: white;
     letter-spacing: 0.3px;
     white-space: nowrap;
@@ -295,132 +293,150 @@ div[data-testid="stMap"] > div {
 """, unsafe_allow_html=True)
 
 # ─── PDF Generation ───────────────────────────────────────────────────────────
-def _get_pdf_fonts():
-    """Return (normal_font, bold_font) names registered with pdfmetrics.
-    Downloads NotoSansThai for real Thai glyph support; falls back to DejaVu."""
-    import os, urllib.request
-    from reportlab.pdfbase.ttfonts import TTFont
+_FONT_CACHE = os.path.join(os.path.expanduser('~'), '.cache', 'citysmart_fonts')
+_SARABUN_REG  = os.path.join(_FONT_CACHE, 'Sarabun-Regular.ttf')
+_SARABUN_BOLD = os.path.join(_FONT_CACHE, 'Sarabun-Bold.ttf')
 
-    cache_dir = os.path.join(os.path.expanduser('~'), '.cache', 'citysmart_fonts')
-    os.makedirs(cache_dir, exist_ok=True)
-
-    noto_reg  = os.path.join(cache_dir, 'NotoSansThai-Regular.ttf')
-    noto_bold = os.path.join(cache_dir, 'NotoSansThai-Bold.ttf')
-
-    _BASE = 'https://github.com/google/fonts/raw/main/ofl/notosansthai/static/'
-    for path, fname in [(noto_reg, 'NotoSansThai-Regular.ttf'),
-                        (noto_bold, 'NotoSansThai-Bold.ttf')]:
-        if not os.path.exists(path):
-            try:
-                urllib.request.urlretrieve(_BASE + fname, path)
-            except Exception:
-                pass
-
+def _ensure_fonts():
+    os.makedirs(_FONT_CACHE, exist_ok=True)
+    css_url = 'https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700'
+    needed = {
+        'Sarabun-Regular.ttf': (400, _SARABUN_REG),
+        'Sarabun-Bold.ttf':    (700, _SARABUN_BOLD),
+    }
+    if all(os.path.exists(p) for _, p in needed.values()):
+        return True
     try:
-        if os.path.exists(noto_reg):
-            pdfmetrics.registerFont(TTFont('NotoTH', noto_reg))
-            if os.path.exists(noto_bold):
-                pdfmetrics.registerFont(TTFont('NotoTH-Bold', noto_bold))
-                return 'NotoTH', 'NotoTH-Bold'
-            return 'NotoTH', 'NotoTH'
+        req = urllib.request.Request(css_url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            css = r.read().decode()
+        for weight, dest in needed.values():
+            if os.path.exists(dest):
+                continue
+            m = re.search(rf"font-weight: {weight}.*?url\(([^)]+)\)", css, re.DOTALL)
+            if m:
+                urllib.request.urlretrieve(m.group(1), dest)
+        return all(os.path.exists(p) for _, p in needed.values())
     except Exception:
-        pass
+        return False
 
-    # Fallback: DejaVuSans (ASCII + some Unicode, no Thai glyph)
-    try:
-        dv  = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
-        dvb = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
-        if os.path.exists(dv):
-            pdfmetrics.registerFont(TTFont('DVS', dv))
-            if os.path.exists(dvb):
-                pdfmetrics.registerFont(TTFont('DVS-Bold', dvb))
-                return 'DVS', 'DVS-Bold'
-            return 'DVS', 'DVS'
-    except Exception:
-        pass
-
-    return 'Helvetica', 'Helvetica-Bold'
-
-def _clean_pdf_line(text):
-    # Keep Thai (U+0E00–U+0E7F), ASCII printable, common punctuation; strip emojis/symbols
-    cleaned = re.sub(r'[^ -~฀-๿]', '', str(text))
+def _clean_text(text):
+    """Strip emojis/non-printable; keep Thai, Latin, digits, punctuation."""
+    cleaned = re.sub(r'[^ -~฀-๿ -ÿ]', '', str(text))
     return re.sub(r'\s+', ' ', cleaned).strip()
 
-def create_pdf(content_dict, province, lang='TH'):
-    buffer = io.BytesIO()
-    base_font, bold_font = _get_pdf_fonts()
+class _ThaiFPDF(FPDF):
+    """FPDF subclass with Sarabun font and convenience helpers."""
+    _fonts_added = False
 
-    doc = SimpleDocTemplate(
-        buffer, pagesize=A4,
-        topMargin=0.85*inch, bottomMargin=0.85*inch,
-        leftMargin=0.9*inch, rightMargin=0.9*inch,
-    )
+    def setup_fonts(self):
+        if not _ThaiFPDF._fonts_added:
+            if os.path.exists(_SARABUN_REG):
+                self.add_font('Sarabun', '',  _SARABUN_REG)
+            if os.path.exists(_SARABUN_BOLD):
+                self.add_font('Sarabun', 'B', _SARABUN_BOLD)
+            _ThaiFPDF._fonts_added = True
+        self._use_sarabun = os.path.exists(_SARABUN_REG)
 
-    title_style = ParagraphStyle(
-        'T', fontName=bold_font, fontSize=20,
-        textColor='#1a1a2e', spaceAfter=10, alignment=TA_CENTER,
-    )
-    heading_style = ParagraphStyle(
-        'H', fontName=bold_font, fontSize=13,
-        textColor='#0077B6', spaceAfter=6, spaceBefore=14, leading=18,
-    )
-    body_style = ParagraphStyle(
-        'B', fontName=base_font, fontSize=10,
-        leading=16, textColor='#1a1a2e', spaceAfter=4,
-    )
-    bullet_style = ParagraphStyle(
-        'BU', parent=body_style, leftIndent=14, spaceAfter=3,
-    )
+    def font_reg(self, size):
+        self.set_font('Sarabun' if self._use_sarabun else 'Helvetica', size=size)
 
-    def render_content(content):
+    def font_bold(self, size):
+        self.set_font('Sarabun' if self._use_sarabun else 'Helvetica', style='B', size=size)
+
+    def header(self):
+        pass  # no auto-header
+
+    def section_heading(self, text, color=(0, 119, 182)):
+        self.set_text_color(*color)
+        self.font_bold(13)
+        self.ln(4)
+        self.multi_cell(0, 8, _clean_text(text),
+                        new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        self.set_text_color(26, 26, 46)
+        self.ln(1)
+
+    def body_line(self, text, indent=0, bold=False):
+        if bold:
+            self.font_bold(10)
+        else:
+            self.font_reg(10)
+        if indent:
+            self.set_x(self.get_x() + indent)
+        self.multi_cell(0, 6.5, _clean_text(text),
+                        new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+    def render_markdown(self, content):
         for raw in str(content).split('\n'):
             line = raw.strip()
             if not line:
-                story.append(Spacer(1, 0.05*inch))
+                self.ln(2)
                 continue
             if line.startswith('## ') or line.startswith('# '):
-                t = _clean_pdf_line(line.lstrip('#').replace('**', '').replace('*', ''))
-                if t:
-                    story.append(Paragraph(t, heading_style))
+                t = re.sub(r'\*+', '', line.lstrip('#')).strip()
+                self.section_heading(t, color=(0, 119, 182))
             elif line.startswith('- ') or line.startswith('* '):
-                t = _clean_pdf_line(line[2:].replace('**', '').replace('*', ''))
-                if t:
-                    story.append(Paragraph('• ' + t, bullet_style))
+                t = re.sub(r'\*+', '', line[2:]).strip()
+                self.body_line('  •  ' + t, indent=4)
             else:
-                t = _clean_pdf_line(line.replace('**', '').replace('*', '').replace('#', ''))
+                t = re.sub(r'\*+', '', line.replace('#', '')).strip()
                 if t:
-                    story.append(Paragraph(t, body_style))
+                    self.body_line(t)
 
-    story = []
+def create_pdf(content_dict, province, lang='TH'):
+    _ensure_fonts()
+    _ThaiFPDF._fonts_added = False  # reset so fonts are re-added per buffer
 
-    title_text = {'TH': f'แผนการเดินทาง: {province}', 'EN': f'Travel Plan: {province}'}.get(lang, f'Travel Plan: {province}')
-    story.append(Paragraph(_clean_pdf_line(title_text), title_style))
-    story.append(Spacer(1, 0.12*inch))
-    story.append(Paragraph(_clean_pdf_line(f"Generated: {datetime.now().strftime('%d %B %Y')}"), body_style))
-    story.append(Spacer(1, 0.18*inch))
+    pdf = _ThaiFPDF(orientation='P', unit='mm', format='A4')
+    pdf.set_margins(left=20, top=20, right=20)
+    pdf.set_auto_page_break(auto=True, margin=20)
+    pdf.add_page()
+    pdf.setup_fonts()
 
+    # ── Title block ──
+    pdf.set_fill_color(0, 119, 182)
+    pdf.rect(0, 0, 210, 32, style='F')
+    pdf.set_text_color(255, 255, 255)
+    pdf.font_bold(18)
+    title_text = f'แผนการเดินทาง: {province}' if lang == 'TH' else f'Travel Plan: {province}'
+    pdf.set_xy(20, 8)
+    pdf.cell(0, 10, _clean_text(title_text),
+             new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.font_reg(9)
+    pdf.set_x(20)
+    pdf.cell(0, 6, f"สร้างเมื่อ: {datetime.now().strftime('%d %B %Y')}",
+             new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.set_text_color(26, 26, 46)
+    pdf.ln(6)
+
+    # ── Weather ──
     if content_dict.get('weather'):
-        story.append(Paragraph(_clean_pdf_line({'TH': 'สภาพอากาศ', 'EN': 'Weather'}.get(lang, 'Weather')), heading_style))
-        render_content(content_dict['weather'])
-        story.append(Spacer(1, 0.08*inch))
+        lbl = 'สภาพอากาศ' if lang == 'TH' else 'Weather Forecast'
+        pdf.section_heading(lbl)
+        pdf.render_markdown(content_dict['weather'])
+        pdf.ln(3)
 
-    main_lbl = {'TH': f'แผนเที่ยว: {province}', 'EN': f'Main Destination: {province}'}.get(lang, f'Main Destination: {province}')
-    story.append(Paragraph(_clean_pdf_line(main_lbl), heading_style))
+    # ── Main itinerary ──
+    main_lbl = f'แผนเที่ยว: {province}' if lang == 'TH' else f'Main Destination: {province}'
+    pdf.section_heading(main_lbl)
     if content_dict.get('main'):
-        render_content(content_dict['main'])
+        pdf.render_markdown(content_dict['main'])
 
+    # ── Gem city ──
     if content_dict.get('gem') and content_dict.get('gem_city'):
-        story.append(PageBreak())
-        gem_lbl = {'TH': f"ทางเลือกใกล้เคียง: {content_dict['gem_city']}", 'EN': f"Nearby Alternative: {content_dict['gem_city']}"}.get(lang, f"Nearby: {content_dict['gem_city']}")
-        story.append(Paragraph(_clean_pdf_line(gem_lbl), heading_style))
+        pdf.add_page()
+        gem_lbl = f"ทางเลือกใกล้เคียง: {content_dict['gem_city']}" if lang == 'TH' \
+                  else f"Nearby Alternative: {content_dict['gem_city']}"
+        pdf.section_heading(gem_lbl)
         if content_dict.get('travel_info'):
-            story.append(Paragraph(_clean_pdf_line(content_dict['travel_info']), body_style))
-            story.append(Spacer(1, 0.06*inch))
-        render_content(content_dict['gem'])
+            pdf.body_line(content_dict['travel_info'])
+            pdf.ln(2)
+        pdf.render_markdown(content_dict['gem'])
 
-    doc.build(story)
-    buffer.seek(0)
-    return buffer
+    buf = io.BytesIO()
+    pdf.output(buf)
+    buf.seek(0)
+    return buf
 
 # ─── AI Setup ─────────────────────────────────────────────────────────────────
 try:
@@ -438,6 +454,7 @@ def load_data():
         df_f = pd.read_excel('data/Thailand_Festival_Master.xlsx')
         df_fe = pd.read_csv('data/Thailand_Festival_With_Events.csv')
         df_t['ProvinceEN'] = df_t['ProvinceEN'].astype(str).str.strip()
+        df_t['Region_EN'] = df_t['Region_EN'].astype(str).str.strip()
         df_t.dropna(subset=['ProvinceEN', 'Region_EN'], inplace=True)
 
         province_th_map = {
@@ -478,7 +495,14 @@ def load_data():
 
 # ─── Province Coordinates ─────────────────────────────────────────────────────
 PROVINCE_COORDS = {
+    # Bangkok Metropolitan
     'Bangkok': (13.7563, 100.5018),
+    'Nonthaburi': (13.8621, 100.5144),
+    'Pathum Thani': (14.0208, 100.5232),
+    'Samut Prakan': (13.5991, 100.5998),
+    'Samut Sakhon': (13.5477, 100.2739),
+    'Samut Songkhram': (13.4098, 100.0023),
+    # Southern
     'Krabi': (8.0863, 98.9063),
     'Phuket': (7.8804, 98.3923),
     'Phang Nga': (8.4509, 98.5255),
@@ -494,6 +518,7 @@ PROVINCE_COORDS = {
     'Pattani': (6.8695, 101.2505),
     'Yala': (6.5411, 101.2804),
     'Narathiwat': (6.4254, 101.8253),
+    # Northern
     'Chiang Mai': (18.7883, 98.9853),
     'Chiang Rai': (19.9105, 99.8406),
     'Lampang': (18.2888, 99.4908),
@@ -502,28 +527,68 @@ PROVINCE_COORDS = {
     'Nan': (18.7756, 100.7730),
     'Phrae': (18.1459, 100.1410),
     'Phayao': (19.1665, 99.9018),
+    'Kamphaeng Phet': (16.4823, 99.5220),
+    'Phetchabun': (16.4189, 101.1552),
+    'Phichit': (16.4418, 100.3494),
+    'Phitsanulok': (16.8219, 100.2659),
+    'Sukhothai': (17.0056, 99.8264),
+    'Tak': (16.8847, 99.1258),
+    'Uttaradit': (17.6255, 100.0996),
+    # Northeastern
     'Loei': (17.4860, 101.7223),
     'Khon Kaen': (16.4419, 102.8350),
     'Udon Thani': (17.4138, 102.7870),
     'Ubon Ratchathani': (15.2447, 104.8472),
     'Nakhon Ratchasima': (14.9799, 102.0977),
+    'Amnat Charoen': (15.8656, 104.6257),
+    'Bueng Kan': (18.3609, 103.6461),
+    'Buri Ram': (14.9933, 103.1029),
+    'Chaiyaphum': (15.8068, 102.0314),
+    'Kalasin': (16.4315, 103.5060),
+    'Maha Sarakham': (16.1851, 103.3001),
+    'Mukdahan': (16.5432, 104.7238),
+    'Nakhon Phanom': (17.3924, 104.7738),
+    'Nong Bua Lam Phu': (17.2042, 102.4260),
+    'Nong Khai': (17.8782, 102.7410),
+    'Roi Et': (16.0538, 103.6520),
+    'Sakon Nakhon': (17.1551, 104.1348),
+    'Si Sa Ket': (15.1186, 104.3220),
+    'Surin': (14.8824, 103.4932),
+    'Yasothon': (15.7925, 104.1447),
+    # Eastern
+    'Chon Buri': (13.3611, 100.9847),
     'Rayong': (12.6814, 101.2816),
     'Chanthaburi': (12.6112, 102.1038),
     'Trat': (12.2428, 102.5175),
+    'Chachoengsao': (13.6905, 101.0779),
+    'Nakhon Nayok': (14.2042, 101.2135),
+    'Prachin Buri': (14.0579, 101.3706),
+    'Sa Kaeo': (13.8241, 102.0642),
+    # Central & Western
     'Prachuap Khiri Khan': (11.8124, 99.7973),
     'Kanchanaburi': (14.0228, 99.5328),
     'Ratchaburi': (13.5283, 99.8134),
     'Phetchaburi': (13.1112, 99.9447),
     'Phra Nakhon Si Ayutthaya': (14.3532, 100.5689),
-    'Sukhothai': (17.0056, 99.8264)
+    'Ang Thong': (14.5896, 100.4554),
+    'Chai Nat': (15.1856, 100.1251),
+    'Lop Buri': (14.7995, 100.6534),
+    'Nakhon Pathom': (13.8199, 100.0643),
+    'Nakhon Sawan': (15.6780, 100.1167),
+    'Saraburi': (14.5289, 100.9107),
+    'Sing Buri': (14.8918, 100.3965),
+    'Suphan Buri': (14.4744, 100.1177),
+    'Uthai Thani': (15.3800, 100.0247),
 }
 
 REGION_NEARBY_FALLBACK = {
-    'South': ['Phang Nga', 'Krabi', 'Ranong', 'Trang', 'Satun', 'Phatthalung', 'Nakhon Si Thammarat', 'Surat Thani'],
-    'North': ['Lamphun', 'Lampang', 'Phrae', 'Nan', 'Phayao', 'Mae Hong Son', 'Chiang Rai'],
-    'Northeast': ['Khon Kaen', 'Udon Thani', 'Loei', 'Roi Et', 'Ubon Ratchathani'],
-    'Central': ['Kanchanaburi', 'Ratchaburi', 'Phetchaburi', 'Prachuap Khiri Khan', 'Nakhon Pathom'],
-    'East': ['Rayong', 'Chanthaburi', 'Trat', 'Chon Buri']
+    'Southern': ['Phang Nga', 'Krabi', 'Ranong', 'Trang', 'Satun', 'Phatthalung', 'Nakhon Si Thammarat', 'Surat Thani', 'Chumphon'],
+    'Northern': ['Lamphun', 'Lampang', 'Phrae', 'Nan', 'Phayao', 'Mae Hong Son', 'Chiang Rai', 'Uttaradit', 'Tak', 'Sukhothai'],
+    'Northeastern': ['Loei', 'Roi Et', 'Kalasin', 'Chaiyaphum', 'Bueng Kan', 'Nakhon Phanom', 'Mukdahan', 'Sakon Nakhon', 'Nong Khai', 'Yasothon', 'Amnat Charoen', 'Si Sa Ket', 'Surin', 'Buri Ram', 'Maha Sarakham'],
+    'Central': ['Kanchanaburi', 'Ratchaburi', 'Phetchaburi', 'Prachuap Khiri Khan', 'Nakhon Pathom', 'Ang Thong', 'Sing Buri', 'Chai Nat', 'Lop Buri', 'Saraburi', 'Suphan Buri', 'Uthai Thani', 'Nakhon Sawan'],
+    'Western': ['Kanchanaburi', 'Uthai Thani', 'Tak', 'Ratchaburi'],
+    'Eastern': ['Chanthaburi', 'Trat', 'Nakhon Nayok', 'Prachin Buri', 'Sa Kaeo', 'Chachoengsao'],
+    'Bangkok Metropolitan': ['Nonthaburi', 'Pathum Thani', 'Samut Prakan', 'Samut Sakhon', 'Samut Songkhram'],
 }
 
 def haversine_km(lat1, lon1, lat2, lon2):
@@ -589,6 +654,170 @@ def get_twin_city_stats(main_prov, gem_prov, df_tour):
             stats[f'{key}_type']     = rows['City_type_EN'].iloc[0]
     return stats
 
+# ─── Feature A: When to Go ────────────────────────────────────────────────────
+_MONTH_ORDER = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+_MONTH_TH    = {'Jan':'ม.ค.','Feb':'ก.พ.','Mar':'มี.ค.','Apr':'เม.ย.','May':'พ.ค.',
+                'Jun':'มิ.ย.','Jul':'ก.ค.','Aug':'ส.ค.','Sep':'ก.ย.','Oct':'ต.ค.',
+                'Nov':'พ.ย.','Dec':'ธ.ค.'}
+_MONTH_FULL_TH = {'Jan':'มกราคม','Feb':'กุมภาพันธ์','Mar':'มีนาคม','Apr':'เมษายน',
+                  'May':'พฤษภาคม','Jun':'มิถุนายน','Jul':'กรกฎาคม','Aug':'สิงหาคม',
+                  'Sep':'กันยายน','Oct':'ตุลาคม','Nov':'พฤศจิกายน','Dec':'ธันวาคม'}
+
+def get_seasonal_stats(province, df):
+    sub = df[df['ProvinceEN'] == province].copy()
+    if sub.empty:
+        return None
+    monthly = sub.groupby('Month').agg(
+        visitors=('total_visitors', 'mean'),
+        revenue=('total_revenue', 'mean'),
+        occupancy=('occupancy_rate', 'mean')
+    ).reset_index()
+    monthly['month_idx'] = monthly['Month'].map({m: i for i, m in enumerate(_MONTH_ORDER)})
+    return monthly.sort_values('month_idx').reset_index(drop=True)
+
+def render_when_to_go(province, sel_month_abbr, df, lang='TH'):
+    import plotly.graph_objects as go
+    stats = get_seasonal_stats(province, df)
+    if stats is None or stats.empty:
+        return None, None
+
+    month_labels = [_MONTH_TH.get(m, m) if lang == 'TH' else m for m in stats['Month']]
+    visitors = stats['visitors'].values
+    max_v = visitors.max()
+
+    # Rank-based classification: top 4 = busy, mid 4 = moderate, bottom 4 = quiet
+    # Guarantees every province always has all three categories
+    import numpy as np
+    n = len(visitors)
+    ranks = np.argsort(np.argsort(visitors))   # rank 0 = lowest
+    top_cut    = n - 4      # ranks >= top_cut → busy
+    bottom_cut = 4          # ranks < bottom_cut → quiet
+
+    colors, season_labels = [], []
+    for rank in ranks:
+        if rank >= top_cut:
+            colors.append('#e74c3c'); season_labels.append('คนแน่น' if lang == 'TH' else 'Busy')
+        elif rank < bottom_cut:
+            colors.append('#27ae60'); season_labels.append('คนน้อย' if lang == 'TH' else 'Quiet')
+        else:
+            colors.append('#f39c12'); season_labels.append('พอดี' if lang == 'TH' else 'Moderate')
+
+    sel_th = _MONTH_TH.get(sel_month_abbr, sel_month_abbr) if lang == 'TH' else sel_month_abbr
+    try:
+        sel_idx = month_labels.index(sel_th)
+    except ValueError:
+        sel_idx = -1
+
+    # Keep original color; dim non-selected bars to 35% opacity
+    bar_colors = colors[:]
+    bar_opacity = [1.0 if i == sel_idx else 0.35 for i in range(len(colors))]
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=month_labels, y=visitors,
+        marker_color=bar_colors,
+        marker_opacity=bar_opacity,
+        marker_line_width=0,
+        customdata=list(zip(season_labels, stats['occupancy'].values)),
+        hovertemplate=(
+            '<b>%{x}</b><br>'
+            'นักท่องเที่ยว: %{y:,.0f} คน<br>'
+            'สถานะ: %{customdata[0]}<br>'
+            'Occupancy: %{customdata[1]:.1f}%<extra></extra>'
+        ) if lang == 'TH' else (
+            '<b>%{x}</b><br>'
+            'Visitors: %{y:,.0f}<br>'
+            'Season: %{customdata[0]}<br>'
+            'Occupancy: %{customdata[1]:.1f}%<extra></extra>'
+        )
+    ))
+
+    # Arrow annotation pointing at selected bar
+    if sel_idx >= 0:
+        ann_lbl = '📅 เดือนของคุณ' if lang == 'TH' else '📅 Your month'
+        fig.add_annotation(
+            x=month_labels[sel_idx],
+            y=visitors[sel_idx],
+            text=ann_lbl,
+            showarrow=True,
+            arrowhead=2,
+            arrowsize=1,
+            arrowwidth=1.5,
+            arrowcolor='#333',
+            ax=0, ay=-32,
+            font=dict(size=10, color='#333'),
+            bgcolor='rgba(255,255,255,0.85)',
+            borderpad=3,
+        )
+
+    fig.update_layout(
+        margin=dict(l=0, r=0, t=28, b=0),
+        height=170,
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        xaxis=dict(showgrid=False, tickfont=dict(size=11)),
+        yaxis=dict(showgrid=True, gridcolor='rgba(0,0,0,0.06)', showticklabels=False),
+        showlegend=False,
+        bargap=0.18,
+    )
+
+    sel_visitors = int(visitors[sel_idx]) if sel_idx >= 0 else None
+    sel_season   = season_labels[sel_idx] if sel_idx >= 0 else ''
+    low_months   = [month_labels[i] for i, r in enumerate(ranks) if r < bottom_cut]
+    peak_months  = [month_labels[i] for i, r in enumerate(ranks) if r >= top_cut]
+
+    return fig, {
+        'sel_visitors': sel_visitors, 'sel_season': sel_season,
+        'sel_month': sel_th, 'low': low_months, 'peak': peak_months,
+        'sel_idx': sel_idx,
+    }
+
+# ─── Feature B: Budget Reality ────────────────────────────────────────────────
+def get_spend_per_visitor(province, df):
+    sub = df[df['ProvinceEN'] == province]
+    if sub.empty:
+        return None
+    avg_rev = sub['total_revenue'].mean()   # unit: million baht
+    avg_vis = sub['total_visitors'].mean()
+    if avg_vis > 0:
+        return round((avg_rev * 1_000_000) / avg_vis)
+    return None
+
+# ─── Feature D: Loop Route Builder ────────────────────────────────────────────
+def find_loop_stops(main_province, df, n=2, max_km=350):
+    base = PROVINCE_COORDS.get(main_province)
+    if not base:
+        return []
+    cands = df[
+        (df['City_type_EN'] == 'Secondary City') &
+        (df['ProvinceEN'] != main_province)
+    ][['ProvinceEN', 'ProvinceTH']].drop_duplicates()
+
+    scored = []
+    for _, row in cands.iterrows():
+        c = row['ProvinceEN']
+        crd = PROVINCE_COORDS.get(c)
+        if not crd:
+            continue
+        d = haversine_km(base[0], base[1], crd[0], crd[1])
+        if d <= max_km:
+            scored.append({'en': c, 'th': str(row['ProvinceTH']), 'dist_from_main': round(d)})
+    scored.sort(key=lambda x: x['dist_from_main'])
+    # Add distance from stop to stop for the loop
+    result = scored[:n]
+    for i, stop in enumerate(result):
+        crd = PROVINCE_COORDS[stop['en']]
+        if i == 0:
+            prev_crd = base
+        else:
+            prev_crd = PROVINCE_COORDS[result[i-1]['en']]
+        stop['dist_from_prev'] = round(haversine_km(prev_crd[0], prev_crd[1], crd[0], crd[1]))
+    # last leg back
+    if result:
+        last_crd = PROVINCE_COORDS[result[-1]['en']]
+        result[-1]['dist_back'] = round(haversine_km(last_crd[0], last_crd[1], base[0], base[1]))
+    return result
+
 def extract_budget_total(text):
     """Parse the '- รวมโดยประมาณ' or '- Total estimate' bullet line → (lo_thb, hi_thb).
 
@@ -623,26 +852,42 @@ def extract_budget_total(text):
 
 # ─── Cleaning & Parsing ───────────────────────────────────────────────────────
 WEATHER_TEMPLATE_MARKERS = [
-    # with brackets (old AI output)
-    '[City Name]', '[Temperature]', '[Short weather condition]', '[Short travel advice]',
+    # with brackets — any bracketed placeholder
+    '[City Name]', '[City]', '[Temperature]', '[Temp', '[Weather]',
+    '[Short weather condition]', '[Short travel advice]', '[Travel tip]',
+    '[actual city', '[actual temp', '[actual weather', '[actual travel',
     # without brackets (AI echoing the format example literally)
     'City Name', 'Temperature', 'Short weather condition',
     'Short weather', 'Short travel tip', 'Short travel advice',
+    'actual city name', 'actual temperature', 'actual weather description',
+    'actual travel tip',
 ]
 
 # Template city names to reject at block-parse level
 _WEATHER_TEMPLATE_CITIES = {
     'city name', 'ชื่อเมือง', '[city name]',
-    'city', 'your city', 'province name',
+    'city', '[city]', 'your city', 'province name',
+    'actual city name', 'actual city',
 }
 
 AI_META_PATTERNS = [
     # ── Format / structure meta ──
     r'^Date:', r'^City 1:', r'^City 2:', r'^Temp:', r'^Condition:', r'^Tip:',
     r'^Constraints:', r'^Check', r'^No English\?', r'^No parentheses\?',
-    r'^Thai only\?', r'^Format followed\?', r'^Ready to output',
+    r'^Thai only[\.\?]', r'^Format followed\?', r'^Ready to output',
     r'^Final verification', r'^Self-Correction', r'^Writing Style:',
     r'^CRITICAL', r'^STRUCTURE:', r'^FORMAT:', r'^Example:',
+    # ── Echoed system-prompt / persona declaration ──
+    r'^Professional\s+Tourism',
+    r'^Tourism\s+Business\s+Consultant',
+    r'^Do not explain',
+    r'^Thai only\.',
+    r'^Targeting\s+(foreign|domestic|local)',
+    r'^Collaboration\s+with',
+    r'^Visual\s+marketing',
+    r'^Early\s+bird\s+(breakfast|brunch|discount)',
+    r'themes\.\s*$',
+    r'^".*"\s+for\s+(Chinese|foreign|Thai)',
     # ── English chain-of-thought ──
     r'^Wait[,\s—]', r'^Wait\.',
     r'^Hmm[,\s—]', r'^Hmm\.',
@@ -710,7 +955,7 @@ def build_day_cards_html(raw_text, gem=False):
     if not text:
         return ''
 
-    accent = '#FF6E40' if gem else '#0077B6'
+    accent = '#FF6E40' if gem else '#1E3D59'
     card_cls = 'day-card gem' if gem else 'day-card'
     sections = re.split(r'\n(?=##\s)', text.strip())
     parts = []
@@ -807,7 +1052,7 @@ def build_timeline_html(raw_text, gem=False):
     if not text:
         return ''
 
-    accent   = '#FF6E40' if gem else '#0077B6'
+    accent   = '#FF6E40' if gem else '#1E3D59'
     wrap_cls = 'timeline-wrap gem-wrap' if gem else 'timeline-wrap'
     dot_cls  = 'timeline-dot gem-dot'   if gem else 'timeline-dot'
     glass_cls = 'timeline-glass gem-glass' if gem else 'timeline-glass'
@@ -844,7 +1089,17 @@ def build_timeline_html(raw_text, gem=False):
                     badges = detect_badges(desc, gem)
                     b_html = ''.join(f'<span class="{tag_cls}">{b}</span>' for b in badges)
                     b_wrap = f'<div class="slot-badges">{b_html}</div>' if b_html else ''
-                    l_part = f'<strong style="color:{accent};">{label}:</strong> ' if label else ''
+                    if label:
+                        _t = re.match(r'^(.*?)\s+(\d{1,2}:\d{2}.*)', label)
+                        if _t:
+                            _period = _t.group(1).strip()
+                            _time   = _t.group(2).strip()
+                            l_part  = (f'<strong style="color:#1E3D59;">{_period}:</strong> '
+                                       f'<span style="color:#444;font-weight:400;">{_time}</span> ')
+                        else:
+                            l_part = f'<strong style="color:#1E3D59;">{label}:</strong> '
+                    else:
+                        l_part = ''
                     parts.append(
                         f'<div class="timeline-slot">'
                         f'<span class="slot-icon">{icon}</span>'
@@ -935,12 +1190,13 @@ def strip_ai_meta_lines(text):
 
     text = normalize_spaces(text)
 
-    # Strip CoT preamble: any text before the first ## heading that smells like reasoning
-    first_heading = re.search(r'\n##\s', text)
-    if first_heading and first_heading.start() > 0:
-        preamble = text[:first_heading.start()].lower()
-        if any(kw in preamble for kw in _COT_KEYWORDS):
-            text = text[first_heading.start():].strip()
+    # Strip everything before the first ## heading unconditionally —
+    # a valid response always starts with ## so any preamble is leaked reasoning.
+    first_heading = re.search(r'(?:^|\n)(##\s)', text)
+    if first_heading:
+        start = first_heading.start(1) if first_heading.start(1) > 0 else first_heading.start()
+        if start > 0:
+            text = text[start:].strip()
 
     cleaned = []
     for line in text.splitlines():
@@ -997,6 +1253,11 @@ def dedupe_weather_blocks(text):
             city_name = city_line.replace("📍 ", "").strip()
             # Reject template placeholder blocks
             if city_name.lower() in _WEATHER_TEMPLATE_CITIES:
+                continue
+            # Reject any block where city name or any line contains bracket placeholders
+            if re.search(r'\[.*?\]', city_name):
+                continue
+            if any(re.search(r'\[.*?\]', ln) for ln in [temp_line, cond_line, tip_line]):
                 continue
             if city_name not in unique:
                 unique[city_name] = [city_line, temp_line, cond_line, tip_line]
@@ -1156,7 +1417,7 @@ for key, default in {
     'main_res': '', 'gem_res': '', 'weather_res': '',
     'travel_info': '', 'gem_city': '', 'lang': 'TH',
     'generated': False, 'persona_mode': 'tourist',
-    'biz_res': '', 'gov_res': '',
+    'biz_res': '', 'gov_res': '', 'loop_res': '',
 }.items():
     if key not in st.session_state:
         st.session_state[key] = default
@@ -1343,6 +1604,7 @@ if persona_mode == 'entrepreneur':
         biz_visitors = biz_info['total_visitors'].mean() if not biz_info.empty else 0
         biz_city_type = biz_info['City_type_EN'].iloc[0] if not biz_info.empty else 'ไม่ทราบ'
         biz_city_th = "เมืองรอง" if biz_city_type == 'Secondary City' else "เมืองหลัก"
+        biz_province_th = format_province(biz_province)
 
         biz_festivals = df_fest_events[
             df_fest_events['Province_ID'] == biz_province
@@ -1352,7 +1614,7 @@ if persona_mode == 'entrepreneur':
         biz_prompt = f"""คุณเป็นที่ปรึกษาธุรกิจท่องเที่ยวมืออาชีพ ตอบเป็นภาษาไทยเท่านั้น ห้ามอธิบายวิธีคิด
 
 วิเคราะห์และแนะนำกลยุทธ์การตลาดสำหรับ:
-- จังหวัด: {biz_province} (ประเภท: {biz_city_th})
+- จังหวัด: {biz_province_th} (ประเภท: {biz_city_th})
 - ประเภทธุรกิจ: {biz_type}
 - เดือน: {biz_month}
 - เทศกาลที่เกี่ยวข้อง: {festivals_str}
@@ -1361,7 +1623,7 @@ if persona_mode == 'entrepreneur':
 
 ตอบในรูปแบบนี้:
 
-## 🎯 วิเคราะห์ตลาด {biz_province} เดือน{biz_month}
+## 🎯 วิเคราะห์ตลาด {biz_province_th} เดือน{biz_month}
 
 ## 📢 กลยุทธ์การตลาดสำหรับ {biz_type}
 (แนะนำ 3-5 กลยุทธ์ที่สอดคล้องกับเทศกาลและฤดูกาล)
@@ -1506,6 +1768,66 @@ with c3:
 
 st.markdown('</div>', unsafe_allow_html=True)
 
+# ─── Feature A: When to Go Card ───────────────────────────────────────────────
+_sel_month_abbr = t_date.strftime('%b')   # 'Jan' … 'Dec'
+_wtg_fig, _wtg_info = render_when_to_go(province, _sel_month_abbr, df_tour, lang=st.session_state.lang)
+if _wtg_fig and _wtg_info:
+    _lang = st.session_state.lang
+    _prov_th_wtg = format_province(province)
+    # insight sentence
+    if _wtg_info['sel_visitors']:
+        _sv = f"{_wtg_info['sel_visitors']:,}"
+        _sm = _wtg_info['sel_month']
+        _ss = _wtg_info['sel_season']
+        if _lang == 'TH':
+            _season_color = {'คนแน่น': '#e74c3c', 'พอดี': '#f39c12', 'คนน้อย': '#27ae60'}.get(_ss, '#888')
+            _insight_line = (
+                f"เดือน <strong>{_sm}</strong> ที่คุณเลือก: "
+                f"<span style='color:{_season_color};font-weight:700'>{_ss} season</span> "
+                f"— นักท่องเที่ยวเฉลี่ย <strong>{_sv}</strong> คน/เดือน"
+            )
+            if _wtg_info['low']:
+                _insight_line += f" · ช่วงคนน้อยที่สุด: <strong>{', '.join(_wtg_info['low'])}</strong>"
+        else:
+            _season_color = {'Busy': '#e74c3c', 'Moderate': '#f39c12', 'Quiet': '#27ae60'}.get(_ss, '#888')
+            _insight_line = (
+                f"<strong>{_sm}</strong> (selected): "
+                f"<span style='color:{_season_color};font-weight:700'>{_ss} season</span> "
+                f"— avg <strong>{_sv}</strong> visitors/month"
+            )
+            if _wtg_info['low']:
+                _insight_line += f" · Quietest: <strong>{', '.join(_wtg_info['low'])}</strong>"
+    else:
+        _insight_line = ''
+
+    # legend chips (no selected chip — bar dimming + annotation handles it)
+    _legend_html = (
+        "<span style='display:inline-flex;gap:0.5rem;font-size:0.75rem;'>"
+        "<span style='background:#e74c3c22;color:#c0392b;padding:2px 8px;border-radius:20px;'>🔴 คนแน่น</span>"
+        "<span style='background:#f39c1222;color:#b7770d;padding:2px 8px;border-radius:20px;'>🟡 พอดี</span>"
+        "<span style='background:#27ae6022;color:#1e8449;padding:2px 8px;border-radius:20px;'>🟢 คนน้อย</span>"
+        "</span>"
+    ) if _lang == 'TH' else (
+        "<span style='display:inline-flex;gap:0.5rem;font-size:0.75rem;'>"
+        "<span style='background:#e74c3c22;color:#c0392b;padding:2px 8px;border-radius:20px;'>🔴 Busy</span>"
+        "<span style='background:#f39c1222;color:#b7770d;padding:2px 8px;border-radius:20px;'>🟡 Moderate</span>"
+        "<span style='background:#27ae6022;color:#1e8449;padding:2px 8px;border-radius:20px;'>🟢 Quiet</span>"
+        "</span>"
+    )
+
+    st.markdown(
+        f'<div style="background:white;border-radius:16px;padding:1rem 1.3rem 0.5rem;'
+        f'box-shadow:0 2px 14px rgba(0,0,0,0.07);margin-bottom:0.8rem;">'
+        f'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.4rem;">'
+        f'<p style="font-weight:700;color:#1E3D59;margin:0;font-size:0.95rem;">'
+        f'📅 {"ไปเมื่อไหรดี?" if _lang == "TH" else "Best Time to Visit?"} · {_prov_th_wtg}</p>'
+        f'{_legend_html}</div>'
+        f'<p style="font-size:0.82rem;color:#555;margin:0.35rem 0 0;">{_insight_line}</p>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
+    st.plotly_chart(_wtg_fig, use_container_width=True, config={'displayModeBar': False})
+
 # ─── Generate Button ──────────────────────────────────────────────────────────
 col_btn1, col_btn2, col_btn3 = st.columns([2, 2, 2])
 with col_btn2:
@@ -1534,6 +1856,20 @@ if generate_clicked:
             for s in selected_style
         ])
         budget_clean = budget_level.split()[1] if ' ' in budget_level else budget_level
+        _spend_avg = get_spend_per_visitor(province, df_tour)
+        _budget_data_hint = ""
+        if _spend_avg:
+            if st.session_state.lang == 'TH':
+                _budget_data_hint = (
+                    f"\n\nข้อมูลจริงจากสถิติ: นักท่องเที่ยวที่ {format_province(province)} "
+                    f"ใช้จ่ายเฉลี่ย {_spend_avg:,} บาท/คน/ทริป "
+                    f"ให้วางแผนงบให้สอดคล้องกับระดับ {budget_clean} โดยอ้างอิงตัวเลขจริงนี้"
+                )
+            else:
+                _budget_data_hint = (
+                    f"\n\nReal data: tourists at {province} spend avg {_spend_avg:,} THB/person/trip. "
+                    f"Align budget plan with {budget_clean} level, anchored to this real figure."
+                )
 
         weather_locations = province
         if st.session_state.gem_city:
@@ -1584,10 +1920,11 @@ No placeholders like [X] or [specify] — fill every field with real information
 Do NOT put Lat/Lon coordinates in the daily plan. Only put them in the ## 🗺️ Coordinates section at the end.
 Use only real place names that exist in the province.
 Each slot: include place name + main activity + time range.
+All budget numbers MUST use comma formatting, e.g. 1,500 บาท — never write without commas like 1500 บาท.
 
 Create a {days}-day itinerary for {format_province(province)}, {start_date_str} to {end_date_str}
 Style: {style_str}
-Budget: {budget_clean}
+Budget: {budget_clean}{_budget_data_hint}
 
 Use this exact structure:
 {day_headers}
@@ -1691,7 +2028,7 @@ if st.session_state.generated:
             if weather_blocks:
                 import html as _html
                 parts = [
-                    '<div style="background:linear-gradient(135deg,#0077B6 0%,#00B4D8 100%);'
+                    '<div style="background:#0077B6;'
                     'border-radius:18px;padding:1rem;">'
                     f'<p style="font-weight:700;font-size:1rem;color:white;margin:0 0 0.75rem 0;">'
                     f'☁️ {t["weather_head"]}</p>'
@@ -1778,7 +2115,7 @@ if st.session_state.main_res:
                 f'<div style="font-size:0.78rem;color:#555;">'
                 f'{vis_lbl}: {main_vis:,.0f}</div>'
                 f'</div>'
-                f'<div style="display:flex;align-items:center;color:#00B4D8;font-size:1rem;font-weight:700;">⟷</div>'
+                f'<div style="display:flex;align-items:center;color:#0077B6;font-size:1rem;font-weight:700;">⟷</div>'
                 f'<div style="flex:1;min-width:140px;">'
                 f'<div style="font-size:0.72rem;color:#888;margin-bottom:0.15rem;">🌟 {gem_th_disp}</div>'
                 f'<div style="font-size:0.82rem;font-weight:600;color:#FF6E40;">'
@@ -1921,3 +2258,108 @@ if st.session_state.main_res:
             mime="application/pdf",
             use_container_width=True
         )
+
+# ─── Feature D: Hidden Gem Loop Route Builder ─────────────────────────────────
+st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
+st.divider()
+st.markdown(
+    '<div style="margin-bottom:0.6rem;">'
+    '<p style="font-weight:800;font-size:1.1rem;color:#0077B6;margin:0 0 4px;">🗺️ สร้างเส้นทาง Loop Trip · Hidden Gem Route</p>'
+    '<p style="font-size:0.85rem;color:#576574;margin:0;">'
+    'เส้นทางที่ Google Maps ไม่เคยแนะนำ — เมืองหลัก → เมืองรอง → กลับบ้าน '
+    'พร้อมระยะทาง เวลาขับรถ และ AI สรุปไฮไลต์แต่ละจุด</p>'
+    '</div>',
+    unsafe_allow_html=True
+)
+
+_loop_lang = st.session_state.lang
+_loop_stops = find_loop_stops(province, df_tour, n=2, max_km=350)
+
+if not _loop_stops:
+    st.info("ไม่พบเมืองรองในรัศมี 350 กม. สำหรับสร้าง Loop Trip" if _loop_lang == 'TH'
+            else "No secondary cities within 350 km for a loop route.")
+else:
+    _prov_th_loop = format_province(province)
+    _main_coord   = PROVINCE_COORDS.get(province)
+
+    # ── Route visual card ──
+    _total_km = sum(s['dist_from_prev'] for s in _loop_stops) + _loop_stops[-1].get('dist_back', 0)
+    _total_drive_min = int(_total_km / 80 * 60)
+    _total_hr  = _total_drive_min // 60
+    _total_min = _total_drive_min % 60
+
+    _route_nodes = [_prov_th_loop] + [s['th'] for s in _loop_stops] + [_prov_th_loop]
+    _route_html = ""
+    for i, node in enumerate(_route_nodes):
+        is_main = (node == _prov_th_loop)
+        is_last = (i == len(_route_nodes) - 1)
+        bg = '#0077B6' if is_main else '#FF6E40'
+        _route_html += (
+            f'<div style="display:flex;align-items:center;gap:0.5rem;">'
+            f'<div style="background:{bg};color:white;border-radius:12px;'
+            f'padding:0.45rem 0.9rem;font-weight:700;font-size:0.88rem;white-space:nowrap;">'
+            f'{"🏙️" if is_main else "🌟"} {node}</div>'
+        )
+        if not is_last:
+            _leg_km = _loop_stops[i]['dist_from_prev'] if i < len(_loop_stops) else _loop_stops[-1].get('dist_back', 0)
+            if i == len(_route_nodes) - 2:
+                _leg_km = _loop_stops[-1].get('dist_back', 0)
+            _leg_min = int(_leg_km / 80 * 60)
+            _leg_lbl = f"{_leg_km} กม. · {_leg_min} นาที" if _loop_lang == 'TH' else f"{_leg_km} km · {_leg_min} min"
+            _route_html += (
+                f'<div style="display:flex;flex-direction:column;align-items:center;color:#888;font-size:0.73rem;">'
+                f'<span>→</span><span style="white-space:nowrap">{_leg_lbl}</span></div>'
+            )
+        _route_html += '</div>'
+
+    st.markdown(
+        f'<div style="background:white;border-radius:16px;padding:1.1rem 1.3rem;'
+        f'box-shadow:0 2px 14px rgba(0,0,0,0.07);margin-bottom:1rem;">'
+        f'<div style="display:flex;align-items:center;flex-wrap:wrap;gap:0.3rem;">{_route_html}</div>'
+        f'<p style="margin:0.7rem 0 0;font-size:0.82rem;color:#555;">'
+        f'📏 {"รวมระยะทางทั้งหมด" if _loop_lang == "TH" else "Total distance"}: '
+        f'<strong>{_total_km} {"กม." if _loop_lang == "TH" else "km"}</strong> · '
+        f'⏱️ {"เวลาขับรถรวม" if _loop_lang == "TH" else "Total drive time"}: '
+        f'<strong>{_total_hr} {"ชม." if _loop_lang == "TH" else "hr"} {_total_min} {"นาที" if _loop_lang == "TH" else "min"}</strong></p>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
+
+    # ── AI generate loop route description ──
+    _loop_btn_lbl = "🤖 ให้ AI สรุปไฮไลต์แต่ละจุดหยุด" if _loop_lang == 'TH' else "🤖 Generate AI highlights for each stop"
+    _loop_col1, _loop_col2, _loop_col3 = st.columns([2, 3, 2])
+    with _loop_col2:
+        if st.button(_loop_btn_lbl, use_container_width=True, key="btn_loop_gen"):
+            _stops_th = [s['th'] for s in _loop_stops]
+            _stops_str = ', '.join(_stops_th)
+            _loop_prompt = f"""
+You are a Thai travel expert. {"ตอบเป็นภาษาไทยเท่านั้น" if _loop_lang == "TH" else "Answer in English."} No internal reasoning. No prompt text.
+
+Create a Hidden Gem Loop Trip highlight for this route:
+{_prov_th_loop} → {" → ".join(_stops_th)} → {_prov_th_loop}
+Travel days: {days} days total, starting {t_date.strftime('%d %B %Y')}
+
+For each stop (including {_prov_th_loop}), write:
+## 📍 [City name]
+- 🌟 ไฮไลต์หลัก: [1-2 สิ่งที่ห้ามพลาด]
+- 🍜 อาหารต้องลอง: [ชื่ออาหารท้องถิ่น]
+- 🎯 เหมาะกับ: [ประเภทนักท่องเที่ยว]
+- ⏱️ เวลาที่แนะนำ: [X วัน/ชั่วโมง]
+
+End with:
+## 💡 ทำไม Loop นี้ถึงพิเศษ
+[2-3 ประโยค อธิบายว่าทำไม combo นี้ถึงดีกว่าไปจังหวัดเดียว]
+"""
+            with st.spinner("🤖 กำลังสร้างไฮไลต์ Loop Trip..." if _loop_lang == 'TH' else "🤖 Generating loop highlights..."):
+                st.session_state.loop_res = call_ai_strict(_loop_prompt, mode="general")
+
+    if st.session_state.loop_res:
+        st.markdown(
+            '<div style="background:white;border-radius:16px;padding:1.2rem 1.5rem;'
+            'box-shadow:0 2px 14px rgba(0,0,0,0.07);border-top:4px solid #0077B6;">',
+            unsafe_allow_html=True
+        )
+        st.markdown(st.session_state.loop_res)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        
