@@ -412,49 +412,6 @@ with tab_national:
         st.write("")
 
 
-    st.divider()
-
-    # ── Time Series Analysis ──────────────────────────────────────────────────
-    st.markdown("#### 📌 แนวโน้มการท่องเที่ยวตามเวลา (Time Series)")
-
-    _metrics_map_ts = {
-        'total_revenue':  'รายได้รวม (Total Revenue)',
-        'total_guests':   'จำนวนผู้เข้าพัก (Total Guests)',
-        'total_visitors': 'จำนวนนักท่องเที่ยว (Total Visitors)',
-    }
-    _num_cols = df_tour.select_dtypes(include=['number']).columns.tolist()
-    _num_cols = [c for c in _num_cols if c not in ['Year','Month','No','Price_Index','Latitude','Longitude']]
-    _disp_map = {c: _metrics_map_ts.get(c, c) for c in _num_cols}
-
-    st.write("⚙️ **เลือกตัวชี้วัดที่ต้องการวิเคราะห์:**")
-    _sel_disp_ts   = st.selectbox("", options=list(_disp_map.values()),
-                                   label_visibility="collapsed", key="db_ts_metric")
-    _sel_metric_ts = [k for k, v in _disp_map.items() if v == _sel_disp_ts][0]
-
-    _ts_df = df_tour.copy()
-    _ts_df['Date'] = pd.to_datetime(
-        _ts_df['Year'].astype(str) + '-' +
-        _ts_df['Month'].map(MONTH_ENG_MAP).astype(str) + '-01'
-    )
-    _ts_agg  = _ts_df.groupby('Date')[_sel_metric_ts].sum().reset_index()
-    _y_lbl_ts = f'{_sel_disp_ts} (ล้านบาท)' if 'revenue' in _sel_metric_ts.lower() else f'{_sel_disp_ts} (คน)'
-    _fig_ts  = px.line(
-        _ts_agg, x='Date', y=_sel_metric_ts,
-        title=f"แนวโน้มตามเวลา: {_sel_disp_ts}",
-        color_discrete_sequence=['#00008B'],
-        labels={_sel_metric_ts: _y_lbl_ts, 'Date': 'วันที่ (Date)'},
-    )
-    _fig_ts.update_layout(
-        xaxis_title="วันที่ (Date)",
-        yaxis_title=_y_lbl_ts,
-        margin=dict(t=20, b=0),
-        plot_bgcolor='white',
-        yaxis=dict(gridcolor='#eee'),
-        font=dict(family="Sarabun, sans-serif", size=13),
-    )
-    st.plotly_chart(_fig_ts, use_container_width=True)
-
-
 # ══════════════════════════════════════════════════════════════════════════════
 # Tab 2: Province Deep Dive
 # ══════════════════════════════════════════════════════════════════════════════
@@ -838,6 +795,41 @@ with tab_province:
         st.plotly_chart(_fig_cmp, use_container_width=True)
     else:
         st.info("กรุณาเลือกจังหวัดและปีที่ต้องการเปรียบเทียบอย่างน้อย 1 รายการ")
+
+    st.divider()
+
+    # ── Time Series Analysis ──────────────────────────────────────────────────
+    st.markdown("#### 📌 แนวโน้มการท่องเที่ยวตามเวลา (Time Series)")
+
+    _metrics_map_ts = {
+        'total_revenue':  'รายได้รวม (Total Revenue)',
+        'total_guests':   'จำนวนผู้เข้าพัก (Total Guests)',
+        'total_visitors': 'จำนวนนักท่องเที่ยว (Total Visitors)',
+    }
+    _num_cols = df_tour.select_dtypes(include=['number']).columns.tolist()
+    _num_cols = [c for c in _num_cols if c not in ['Year','Month','No','Price_Index','Latitude','Longitude']]
+    _disp_map = {c: _metrics_map_ts.get(c, c) for c in _num_cols}
+
+    st.write("⚙️ **เลือกตัวชี้วัดที่ต้องการวิเคราะห์:**")
+    _sel_disp_ts   = st.selectbox("", options=list(_disp_map.values()),
+                                   label_visibility="collapsed", key="db_ts_metric")
+    _sel_metric_ts = [k for k, v in _disp_map.items() if v == _sel_disp_ts][0]
+
+    _ts_df = df_tour.copy()
+    _ts_df['Date'] = pd.to_datetime(
+        _ts_df['Year'].astype(str) + '-' +
+        _ts_df['Month'].map(MONTH_ENG_MAP).astype(str) + '-01'
+    )
+    _ts_agg  = _ts_df.groupby('Date')[_sel_metric_ts].sum().reset_index()
+    _y_lbl_ts = f'{_sel_disp_ts} (ล้านบาท)' if 'revenue' in _sel_metric_ts.lower() else f'{_sel_disp_ts} (คน)'
+    _fig_ts  = px.line(
+        _ts_agg, x='Date', y=_sel_metric_ts,
+        title=f"แนวโน้มตามเวลา: {_sel_disp_ts}",
+        color_discrete_sequence=['#00008B'],
+        labels={_sel_metric_ts: _y_lbl_ts, 'Date': 'วันที่ (Date)'},
+    )
+    st.plotly_chart(_fig_ts, use_container_width=True)
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Tab 3: Festival Master Dataset
