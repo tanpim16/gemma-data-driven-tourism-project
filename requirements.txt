@@ -4,3 +4,5 @@ google-generativeai
 plotly
 openpyxl
 fpdf2
+duckdb
+numpy

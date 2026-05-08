@@ -1,6 +1,7 @@
 import streamlit as st
 import google.generativeai as genai
 import pandas as pd
+import duckdb
 from datetime import datetime, timedelta
 from fpdf import FPDF
 from fpdf.enums import XPos, YPos
@@ -439,20 +440,32 @@ def create_pdf(content_dict, province, lang='TH'):
     return buf
 
 # ─── AI Setup ─────────────────────────────────────────────────────────────────
+_ai_ready = False
 try:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
     gemma_model = genai.GenerativeModel('gemma-4-31b-it')
-except Exception as e:
-    st.error(f"ไม่สามารถเชื่อมต่อ AI ได้: {e}")
-    st.stop()
+    _ai_ready = True
+except Exception:
+    gemma_model = None
+
+# ─── DuckDB Connection ─────────────────────────────────────────────────────────
+@st.cache_resource
+def get_duckdb_conn():
+    """Shared DuckDB in-memory connection — cached as a resource (not serialisable)."""
+    return duckdb.connect()
 
 # ─── Load Data ────────────────────────────────────────────────────────────────
 @st.cache_data
 def load_data():
     try:
-        df_t = pd.read_csv('data/master_tourism_analysis.csv')
-        df_f = pd.read_excel('data/Thailand_Festival_Master.xlsx')
-        df_fe = pd.read_csv('data/Thailand_Festival_With_Events.csv')
+        conn  = get_duckdb_conn()
+        df_t  = conn.execute(
+            "SELECT * FROM read_csv_auto('data/master_tourism_analysis.csv')"
+        ).df()
+        df_fe = conn.execute(
+            "SELECT * FROM read_csv_auto('data/Thailand_Festival_With_Events.csv')"
+        ).df()
+        df_f  = pd.read_excel('data/Thailand_Festival_Master.xlsx')   # xlsx → pandas
         df_t['ProvinceEN'] = df_t['ProvinceEN'].astype(str).str.strip()
         df_t['Region_EN'] = df_t['Region_EN'].astype(str).str.strip()
         df_t.dropna(subset=['ProvinceEN', 'Region_EN'], inplace=True)
@@ -1418,6 +1431,7 @@ for key, default in {
     'travel_info': '', 'gem_city': '', 'lang': 'TH',
     'generated': False, 'persona_mode': 'tourist',
     'biz_res': '', 'gov_res': '', 'loop_res': '',
+    'ai_mode': True,
 }.items():
     if key not in st.session_state:
         st.session_state[key] = default
@@ -1435,6 +1449,8 @@ province_options = _province_df['ProvinceEN'].tolist()
 
 
 def format_province(p_en):
+    if st.session_state.lang == 'EN':
+        return str(p_en)
     row = df_tour[df_tour['ProvinceEN'] == p_en]
     if not row.empty:
         val = row['ProvinceTH'].iloc[0]
@@ -1475,6 +1491,14 @@ ui = {
         'hotel_section': "## 🏨 ที่พักแนะนำ",
         'hotel_hint': "**ชื่อที่พักจริง**: คำอธิบายสั้นๆ",
         'budget_items': "- ค่าที่พัก:\n- ค่าอาหาร:\n- ค่าเดินทาง:\n- ค่าเข้าสถานที่และกิจกรรม:\n- รวมโดยประมาณ:",
+        'loop_title': "สร้างเส้นทาง Loop Trip · Hidden Gem Route",
+        'loop_sub': "เส้นทางที่ Google Maps ไม่เคยแนะนำ — เมืองหลัก → เมืองรอง → กลับบ้าน พร้อมระยะทาง เวลาขับรถ และ AI สรุปไฮไลต์แต่ละจุด",
+        'loop_no_stops': "ไม่พบเมืองรองในรัศมี 350 กม. สำหรับสร้าง Loop Trip",
+        'loop_total_dist': "รวมระยะทางทั้งหมด", 'loop_total_drive': "เวลาขับรถรวม",
+        'loop_km': "กม.", 'loop_hr': "ชม.", 'loop_min': "นาที",
+        'loop_btn': "🤖 ให้ AI สรุปไฮไลต์แต่ละจุดหยุด",
+        'loop_spinner': "🤖 กำลังสร้างไฮไลต์ Loop Trip...",
+        'loop_ai_off': "🤖 เปิดโหมด AI (แถบซ้าย) เพื่อให้ AI สรุปไฮไลต์แต่ละจุดหยุด",
     },
     'EN': {
         'title': "Plan Your Trip", 'accent': "The Smart Way",
@@ -1508,9 +1532,47 @@ ui = {
         'hotel_section': "## 🏨 Recommended Hotels",
         'hotel_hint': "**Real Hotel Name**: short description",
         'budget_items': "- Accommodation:\n- Food:\n- Transport:\n- Entrance fees & activities:\n- Total estimate:",
+        'loop_title': "Build Loop Trip · Hidden Gem Route",
+        'loop_sub': "Routes Google Maps never suggests — Main City → Secondary City → Home, with distances, drive times, and AI highlights for each stop",
+        'loop_no_stops': "No secondary cities within 350 km for a loop route.",
+        'loop_total_dist': "Total distance", 'loop_total_drive': "Total drive time",
+        'loop_km': "km", 'loop_hr': "hr", 'loop_min': "min",
+        'loop_btn': "🤖 Generate AI highlights for each stop",
+        'loop_spinner': "🤖 Generating loop highlights...",
+        'loop_ai_off': "🤖 Enable AI mode (sidebar) to generate highlights for each stop.",
     },
 }
 t = ui.get(st.session_state.lang, ui['TH'])
+
+# ─── Sidebar: AI Mode Toggle ──────────────────────────────────────────────────
+with st.sidebar:
+    st.markdown("## ⚙️ ตั้งค่า")
+    st.divider()
+    _ai_toggle = st.toggle(
+        "🤖 โหมด AI",
+        value=st.session_state.ai_mode,
+        key="ai_mode_toggle",
+        help="เปิด = ใช้ Gemini AI สร้างแผน · ปิด = ดูข้อมูลจาก Database อย่างเดียว",
+    )
+    if _ai_toggle != st.session_state.ai_mode:
+        st.session_state.ai_mode = _ai_toggle
+        st.session_state.generated = False
+        st.session_state.main_res = ''
+        st.session_state.gem_res = ''
+        st.session_state.weather_res = ''
+        st.session_state.biz_res = ''
+        st.session_state.gov_res = ''
+        st.rerun()
+
+    if st.session_state.ai_mode and _ai_ready:
+        st.success("AI เปิดอยู่ · Gemini พร้อมใช้งาน")
+    elif st.session_state.ai_mode and not _ai_ready:
+        st.error("ไม่พบ API Key · AI ไม่พร้อมใช้งาน")
+    else:
+        st.info("Non-AI Mode · แสดงข้อมูลจาก Database")
+
+    st.divider()
+    st.caption("📊 ข้อมูล: กระทรวงการท่องเที่ยวฯ 2566–2568")
 
 # ─── Hero ─────────────────────────────────────────────────────────────────────
 col_title, col_lang = st.columns([3.2, 1])
@@ -1595,8 +1657,8 @@ if persona_mode == 'entrepreneur':
 
     _, bz_btn, _ = st.columns([2, 2, 2])
     with bz_btn:
-        biz_clicked = st.button("🚀 วิเคราะห์และสร้างกลยุทธ์",
-                                use_container_width=True, type="primary")
+        _biz_btn_label = "🚀 วิเคราะห์และสร้างกลยุทธ์" if st.session_state.ai_mode else "📊 ดูข้อมูลตลาด (Non-AI)"
+        biz_clicked = st.button(_biz_btn_label, use_container_width=True, type="primary")
 
     if biz_clicked:
         biz_info = df_tour[df_tour['ProvinceEN'] == biz_province]
@@ -1611,7 +1673,19 @@ if persona_mode == 'entrepreneur':
         ]['Festival_Name_TH'].tolist()
         festivals_str = ', '.join(biz_festivals[:5]) if biz_festivals else "ไม่พบข้อมูลเทศกาล"
 
-        biz_prompt = f"""คุณเป็นที่ปรึกษาธุรกิจท่องเที่ยวมืออาชีพ ตอบเป็นภาษาไทยเท่านั้น ห้ามอธิบายวิธีคิด
+        if not st.session_state.ai_mode:
+            # Non-AI: show raw market data only
+            st.session_state.biz_res = (
+                f"## 📊 ข้อมูลตลาด Non-AI: {biz_province_th}\n\n"
+                f"| รายการ | ค่า |\n|---|---|\n"
+                f"| ประเภทเมือง | {biz_city_th} |\n"
+                f"| รายได้เฉลี่ย/เดือน | {biz_revenue:,.1f} ล้านบาท |\n"
+                f"| นักท่องเที่ยวเฉลี่ย/เดือน | {biz_visitors:,.0f} คน |\n"
+                f"| เทศกาล | {festivals_str} |\n\n"
+                f"💡 **เปิดโหมด AI** เพื่อรับกลยุทธ์การตลาดแบบละเอียด"
+            )
+        else:
+            biz_prompt = f"""คุณเป็นที่ปรึกษาธุรกิจท่องเที่ยวมืออาชีพ ตอบเป็นภาษาไทยเท่านั้น ห้ามอธิบายวิธีคิด
 
 วิเคราะห์และแนะนำกลยุทธ์การตลาดสำหรับ:
 - จังหวัด: {biz_province_th} (ประเภท: {biz_city_th})
@@ -1636,9 +1710,9 @@ if persona_mode == 'entrepreneur':
 
 ## 📊 ตัวชี้วัดที่ควรติดตาม (KPI)"""
 
-        with st.spinner("🤖 กำลังวิเคราะห์และสร้างกลยุทธ์..."):
-            st.session_state.biz_res = call_ai_strict(biz_prompt, mode="general")
-        st.success("✅ สร้างกลยุทธ์เรียบร้อย!")
+            with st.spinner("🤖 กำลังวิเคราะห์และสร้างกลยุทธ์..."):
+                st.session_state.biz_res = call_ai_strict(biz_prompt, mode="general")
+            st.success("✅ สร้างกลยุทธ์เรียบร้อย!")
 
     if st.session_state.biz_res:
         st.markdown('<div class="result-card">', unsafe_allow_html=True)
@@ -1667,8 +1741,8 @@ if persona_mode == 'government':
 
     _, gv_btn, _ = st.columns([2, 2, 2])
     with gv_btn:
-        gov_clicked = st.button("🚀 วิเคราะห์และสร้างนโยบาย",
-                                use_container_width=True, type="primary")
+        _gov_btn_label = "🚀 วิเคราะห์และสร้างนโยบาย" if st.session_state.ai_mode else "📊 ดูข้อมูลตลาด (Non-AI)"
+        gov_clicked = st.button(_gov_btn_label, use_container_width=True, type="primary")
 
     if gov_clicked:
         gov_info = df_tour[df_tour['ProvinceEN'] == gov_province]
@@ -1691,7 +1765,22 @@ if persona_mode == 'government':
         ]['Festival_Name_TH'].tolist()
         festivals_str = ', '.join(gov_festivals[:5]) if gov_festivals else "ยังไม่มีข้อมูลเทศกาล"
 
-        gov_prompt = f"""คุณเป็นที่ปรึกษาด้านนโยบายการท่องเที่ยวของภาครัฐ ตอบเป็นภาษาไทยเท่านั้น ห้ามอธิบายวิธีคิด
+        if not st.session_state.ai_mode:
+            # Non-AI: show raw policy data only
+            gov_province_th = format_province(gov_province)
+            st.session_state.gov_res = (
+                f"## 📊 ข้อมูลนโยบาย Non-AI: {gov_province_th}\n\n"
+                f"| รายการ | ค่า |\n|---|---|\n"
+                f"| ประเภทเมือง | {gov_city_type} |\n"
+                f"| ภูมิภาค | {gov_region} |\n"
+                f"| High Season | {high_month} ({high_rev:,.1f} ล้านบาท) |\n"
+                f"| Low Season | {low_month} ({low_rev:,.1f} ล้านบาท) |\n"
+                f"| ช่องว่าง High-Low | {gap_ratio:.1f} เท่า |\n"
+                f"| เทศกาล | {festivals_str} |\n\n"
+                f"💡 **เปิดโหมด AI** เพื่อรับข้อเสนอนโยบายแบบละเอียด"
+            )
+        else:
+            gov_prompt = f"""คุณเป็นที่ปรึกษาด้านนโยบายการท่องเที่ยวของภาครัฐ ตอบเป็นภาษาไทยเท่านั้น ห้ามอธิบายวิธีคิด
 
 วิเคราะห์ข้อมูลและเสนอแนะนโยบายสำหรับ:
 - จังหวัด: {gov_province} (ประเภท: {gov_city_type}, ภูมิภาค: {gov_region})
@@ -1720,9 +1809,9 @@ if persona_mode == 'government':
 
 ## 🤝 แนวทางการประสานงานภาครัฐ-เอกชน"""
 
-        with st.spinner("🤖 กำลังวิเคราะห์และสร้างรายงานนโยบาย..."):
-            st.session_state.gov_res = call_ai_strict(gov_prompt, mode="general")
-        st.success("✅ สร้างรายงานนโยบายเรียบร้อย!")
+            with st.spinner("🤖 กำลังวิเคราะห์และสร้างรายงานนโยบาย..."):
+                st.session_state.gov_res = call_ai_strict(gov_prompt, mode="general")
+            st.success("✅ สร้างรายงานนโยบายเรียบร้อย!")
 
     if st.session_state.gov_res:
         st.markdown('<div class="result-card">', unsafe_allow_html=True)
@@ -1743,6 +1832,8 @@ with c1:
     province_options = province_df['ProvinceEN'].tolist()
 
     def format_province(p_en):
+        if st.session_state.lang == 'EN':
+            return str(p_en)
         row = df_tour[df_tour['ProvinceEN'] == p_en]
         if not row.empty:
             val = row['ProvinceTH'].iloc[0]
@@ -1831,9 +1922,41 @@ if _wtg_fig and _wtg_info:
 # ─── Generate Button ──────────────────────────────────────────────────────────
 col_btn1, col_btn2, col_btn3 = st.columns([2, 2, 2])
 with col_btn2:
-    generate_clicked = st.button(t['btn'], use_container_width=True, type="primary")
+    _btn_label = t['btn'] if st.session_state.ai_mode else (
+        "📊 ดูข้อมูล Non-AI" if st.session_state.lang == 'TH' else "📊 View Data (Non-AI)"
+    )
+    generate_clicked = st.button(_btn_label, use_container_width=True, type="primary")
 
-if generate_clicked:
+if generate_clicked and not st.session_state.ai_mode:
+    # Non-AI mode: show data summary without calling Gemini
+    city_info = df_tour[df_tour['ProvinceEN'] == province].iloc[0]
+    _spend_avg = get_spend_per_visitor(province, df_tour)
+    _prov_th   = format_province(province)
+    _city_type = "เมืองหลัก" if city_info['City_type_EN'] == 'Major City' else "เมืองรอง"
+    _region    = str(city_info.get('Region_EN', '')).strip()
+    _avg_rev   = df_tour[df_tour['ProvinceEN'] == province]['total_revenue'].mean()
+    _avg_vis   = df_tour[df_tour['ProvinceEN'] == province]['total_visitors'].mean()
+    _festivals = df_fest_events[df_fest_events['Province_ID'] == province]['Festival_Name_TH'].dropna().tolist()
+    _fest_str  = ', '.join(_festivals[:5]) if _festivals else 'ไม่มีข้อมูล'
+    st.markdown('<div class="result-card">', unsafe_allow_html=True)
+    st.markdown(f"""
+## 📊 ข้อมูล Non-AI: {_prov_th}
+> ข้อมูลจากฐานข้อมูลกระทรวงการท่องเที่ยวฯ 2566–2568 · ไม่ใช้ AI
+
+| รายการ | ค่า |
+|---|---|
+| ประเภทเมือง | {_city_type} |
+| ภูมิภาค | {_region} |
+| รายได้เฉลี่ย/เดือน | {_avg_rev:,.1f} ล้านบาท |
+| นักท่องเที่ยวเฉลี่ย/เดือน | {_avg_vis:,.0f} คน |
+| ค่าใช้จ่ายเฉลี่ย/คน | {f'{_spend_avg:,} บาท' if _spend_avg else 'ไม่มีข้อมูล'} |
+| เทศกาลสำคัญ | {_fest_str} |
+
+💡 **เปิดโหมด AI** (แถบด้านซ้าย) เพื่อรับแผนเดินทางที่ AI สร้างให้อย่างละเอียด
+""")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+elif generate_clicked:
     city_info = df_tour[df_tour['ProvinceEN'] == province].iloc[0]
     start_date_str = t_date.strftime('%d %B %Y')
     end_date_str = (t_date + timedelta(days=days - 1)).strftime('%d %B %Y')
@@ -2236,39 +2359,14 @@ if st.session_state.main_res:
         st.markdown(tl_html if tl_html else strip_coords_for_display(st.session_state.main_res),
                     unsafe_allow_html=True)
 
-    content_dict = {
-        'weather': st.session_state.weather_res,
-        'main': st.session_state.main_res,
-        'gem': st.session_state.gem_res,
-        'gem_city': st.session_state.gem_city,
-        'travel_info': st.session_state.travel_info
-    }
-
-    pdf_buffer = create_pdf(content_dict, province, st.session_state.lang)
-    province_filename = province.replace(" ", "_")
-    date_str = t_date.strftime('%Y%m%d')
-
-    st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-    col_dl1, col_dl2, col_dl3 = st.columns([2, 2, 2])
-    with col_dl2:
-        st.download_button(
-            label=f"📥 {t['download_btn']}",
-            data=pdf_buffer,
-            file_name=f"trip_{province_filename}_{date_str}.pdf",
-            mime="application/pdf",
-            use_container_width=True
-        )
-
 # ─── Feature D: Hidden Gem Loop Route Builder ─────────────────────────────────
 st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
 st.divider()
 st.markdown(
-    '<div style="margin-bottom:0.6rem;">'
-    '<p style="font-weight:800;font-size:1.1rem;color:#0077B6;margin:0 0 4px;">🗺️ สร้างเส้นทาง Loop Trip · Hidden Gem Route</p>'
-    '<p style="font-size:0.85rem;color:#576574;margin:0;">'
-    'เส้นทางที่ Google Maps ไม่เคยแนะนำ — เมืองหลัก → เมืองรอง → กลับบ้าน '
-    'พร้อมระยะทาง เวลาขับรถ และ AI สรุปไฮไลต์แต่ละจุด</p>'
-    '</div>',
+    f'<div style="margin-bottom:0.6rem;">'
+    f'<p style="font-weight:800;font-size:1.1rem;color:#0077B6;margin:0 0 4px;">🗺️ {t["loop_title"]}</p>'
+    f'<p style="font-size:0.85rem;color:#576574;margin:0;">{t["loop_sub"]}</p>'
+    f'</div>',
     unsafe_allow_html=True
 )
 
@@ -2276,11 +2374,10 @@ _loop_lang = st.session_state.lang
 _loop_stops = find_loop_stops(province, df_tour, n=2, max_km=350)
 
 if not _loop_stops:
-    st.info("ไม่พบเมืองรองในรัศมี 350 กม. สำหรับสร้าง Loop Trip" if _loop_lang == 'TH'
-            else "No secondary cities within 350 km for a loop route.")
+    st.info(t['loop_no_stops'])
 else:
-    _prov_th_loop = format_province(province)
-    _main_coord   = PROVINCE_COORDS.get(province)
+    _prov_display_loop = format_province(province)
+    _main_coord        = PROVINCE_COORDS.get(province)
 
     # ── Route visual card ──
     _total_km = sum(s['dist_from_prev'] for s in _loop_stops) + _loop_stops[-1].get('dist_back', 0)
@@ -2288,10 +2385,11 @@ else:
     _total_hr  = _total_drive_min // 60
     _total_min = _total_drive_min % 60
 
-    _route_nodes = [_prov_th_loop] + [s['th'] for s in _loop_stops] + [_prov_th_loop]
+    _stop_labels  = [s['en'] if _loop_lang == 'EN' else s['th'] for s in _loop_stops]
+    _route_nodes = [_prov_display_loop] + _stop_labels + [_prov_display_loop]
     _route_html = ""
     for i, node in enumerate(_route_nodes):
-        is_main = (node == _prov_th_loop)
+        is_main = (node == _prov_display_loop)
         is_last = (i == len(_route_nodes) - 1)
         bg = '#0077B6' if is_main else '#FF6E40'
         _route_html += (
@@ -2305,7 +2403,7 @@ else:
             if i == len(_route_nodes) - 2:
                 _leg_km = _loop_stops[-1].get('dist_back', 0)
             _leg_min = int(_leg_km / 80 * 60)
-            _leg_lbl = f"{_leg_km} กม. · {_leg_min} นาที" if _loop_lang == 'TH' else f"{_leg_km} km · {_leg_min} min"
+            _leg_lbl = f"{_leg_km} {t['loop_km']} · {_leg_min} {t['loop_min']}"
             _route_html += (
                 f'<div style="display:flex;flex-direction:column;align-items:center;color:#888;font-size:0.73rem;">'
                 f'<span>→</span><span style="white-space:nowrap">{_leg_lbl}</span></div>'
@@ -2317,30 +2415,32 @@ else:
         f'box-shadow:0 2px 14px rgba(0,0,0,0.07);margin-bottom:1rem;">'
         f'<div style="display:flex;align-items:center;flex-wrap:wrap;gap:0.3rem;">{_route_html}</div>'
         f'<p style="margin:0.7rem 0 0;font-size:0.82rem;color:#555;">'
-        f'📏 {"รวมระยะทางทั้งหมด" if _loop_lang == "TH" else "Total distance"}: '
-        f'<strong>{_total_km} {"กม." if _loop_lang == "TH" else "km"}</strong> · '
-        f'⏱️ {"เวลาขับรถรวม" if _loop_lang == "TH" else "Total drive time"}: '
-        f'<strong>{_total_hr} {"ชม." if _loop_lang == "TH" else "hr"} {_total_min} {"นาที" if _loop_lang == "TH" else "min"}</strong></p>'
+        f'📏 {t["loop_total_dist"]}: '
+        f'<strong>{_total_km} {t["loop_km"]}</strong> · '
+        f'⏱️ {t["loop_total_drive"]}: '
+        f'<strong>{_total_hr} {t["loop_hr"]} {_total_min} {t["loop_min"]}</strong></p>'
         f'</div>',
         unsafe_allow_html=True
     )
 
     # ── AI generate loop route description ──
-    _loop_btn_lbl = "🤖 ให้ AI สรุปไฮไลต์แต่ละจุดหยุด" if _loop_lang == 'TH' else "🤖 Generate AI highlights for each stop"
-    _loop_col1, _loop_col2, _loop_col3 = st.columns([2, 3, 2])
-    with _loop_col2:
-        if st.button(_loop_btn_lbl, use_container_width=True, key="btn_loop_gen"):
-            _stops_th = [s['th'] for s in _loop_stops]
-            _stops_str = ', '.join(_stops_th)
-            _loop_prompt = f"""
-You are a Thai travel expert. {"ตอบเป็นภาษาไทยเท่านั้น" if _loop_lang == "TH" else "Answer in English."} No internal reasoning. No prompt text.
+    if not st.session_state.ai_mode:
+        st.info(t['loop_ai_off'])
+    else:
+        _loop_col1, _loop_col2, _loop_col3 = st.columns([1, 4, 1])
+        with _loop_col2:
+            if st.button(t['loop_btn'], use_container_width=True, key="btn_loop_gen"):
+                _stops_str = ', '.join(_stop_labels)
+                if _loop_lang == 'TH':
+                    _loop_prompt = f"""
+You are a Thai travel expert. ตอบเป็นภาษาไทยเท่านั้น No internal reasoning. No prompt text.
 
 Create a Hidden Gem Loop Trip highlight for this route:
-{_prov_th_loop} → {" → ".join(_stops_th)} → {_prov_th_loop}
+{_prov_display_loop} → {" → ".join(_stop_labels)} → {_prov_display_loop}
 Travel days: {days} days total, starting {t_date.strftime('%d %B %Y')}
 
-For each stop (including {_prov_th_loop}), write:
-## 📍 [City name]
+For each stop (including {_prov_display_loop}), write:
+## 📍 [ชื่อจังหวัด]
 - 🌟 ไฮไลต์หลัก: [1-2 สิ่งที่ห้ามพลาด]
 - 🍜 อาหารต้องลอง: [ชื่ออาหารท้องถิ่น]
 - 🎯 เหมาะกับ: [ประเภทนักท่องเที่ยว]
@@ -2350,16 +2450,35 @@ End with:
 ## 💡 ทำไม Loop นี้ถึงพิเศษ
 [2-3 ประโยค อธิบายว่าทำไม combo นี้ถึงดีกว่าไปจังหวัดเดียว]
 """
-            with st.spinner("🤖 กำลังสร้างไฮไลต์ Loop Trip..." if _loop_lang == 'TH' else "🤖 Generating loop highlights..."):
-                st.session_state.loop_res = call_ai_strict(_loop_prompt, mode="general")
+                else:
+                    _loop_prompt = f"""
+You are a Thai travel expert. Answer in English only. No internal reasoning. No prompt text.
 
-    if st.session_state.loop_res:
-        st.markdown(
-            '<div style="background:white;border-radius:16px;padding:1.2rem 1.5rem;'
-            'box-shadow:0 2px 14px rgba(0,0,0,0.07);border-top:4px solid #0077B6;">',
-            unsafe_allow_html=True
-        )
-        st.markdown(st.session_state.loop_res)
-        st.markdown('</div>', unsafe_allow_html=True)
+Create a Hidden Gem Loop Trip highlight for this route:
+{_prov_display_loop} → {" → ".join(_stop_labels)} → {_prov_display_loop}
+Travel days: {days} days total, starting {t_date.strftime('%d %B %Y')}
+
+For each stop (including {_prov_display_loop}), write:
+## 📍 [City name]
+- 🌟 Main Highlights: [1-2 must-see things]
+- 🍜 Must-Try Food: [local dish names]
+- 🎯 Best for: [traveller type]
+- ⏱️ Recommended time: [X days/hours]
+
+End with:
+## 💡 Why This Loop Is Special
+[2-3 sentences explaining why this combo beats visiting one province alone]
+"""
+                with st.spinner(t['loop_spinner']):
+                    st.session_state.loop_res = call_ai_strict(_loop_prompt, mode="general")
+
+        if st.session_state.loop_res:
+            st.markdown(
+                '<div style="background:white;border-radius:16px;padding:1.2rem 1.5rem;'
+                'box-shadow:0 2px 14px rgba(0,0,0,0.07);border-top:4px solid #0077B6;">',
+                unsafe_allow_html=True
+            )
+            st.markdown(st.session_state.loop_res)
+            st.markdown('</div>', unsafe_allow_html=True)
 
         

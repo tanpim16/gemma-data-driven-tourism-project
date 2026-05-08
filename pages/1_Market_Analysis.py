@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import duckdb
 import plotly.express as px
 import plotly.graph_objects as go
 
@@ -114,12 +115,22 @@ def insight_box(df, value_col, group_col=None, year_col=None, unit='ล้าน
     )
 
 
+@st.cache_resource
+def get_duckdb_conn():
+    """Shared DuckDB in-memory connection — cached as a resource (not serialisable)."""
+    return duckdb.connect()
+
 @st.cache_data
 def load_data():
     try:
-        df_t  = pd.read_csv('data/master_tourism_analysis.csv')
-        df_f  = pd.read_excel('data/Thailand_Festival_Master.xlsx')
-        df_fe = pd.read_csv('data/Thailand_Festival_With_Events.csv')
+        conn  = get_duckdb_conn()
+        df_t  = conn.execute(
+            "SELECT * FROM read_csv_auto('data/master_tourism_analysis.csv')"
+        ).df()
+        df_fe = conn.execute(
+            "SELECT * FROM read_csv_auto('data/Thailand_Festival_With_Events.csv')"
+        ).df()
+        df_f  = pd.read_excel('data/Thailand_Festival_Master.xlsx')   # xlsx → pandas
         return df_t.dropna(subset=['ProvinceEN']), df_f, df_fe
     except FileNotFoundError as e:
         st.error(f"ไม่พบไฟล์ข้อมูล: {e}"); st.stop()
