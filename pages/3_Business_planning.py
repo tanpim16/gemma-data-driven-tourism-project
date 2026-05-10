@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from utils.snowflake_connector import query_snowflake
 
 # ─── 1. Page Config ──────────────────────────────────────────────────────────
 st.set_page_config(
@@ -55,8 +58,16 @@ html, body, [class*="css"] {
 @st.cache_data
 def load_data():
     try:
-        # 1. โหลดข้อมูลท่องเที่ยว
-        df_load = pd.read_csv('data/master_tourism_analysis.csv')
+        # 1. โหลดข้อมูลท่องเที่ยวจาก Snowflake
+        df_load = query_snowflake("SELECT * FROM TOURISM_DB.PUBLIC.TOURISM_STATS")
+        # Snowflake คืน UPPERCASE columns → remap
+        _remap = {
+            'YEAR': 'Year', 'MONTH': 'Month', 'PROVINCETHAI': 'ProvinceThai',
+            'PROVINCEEN': 'ProvinceEN', 'REGION_TH': 'Region_TH', 'REGION_EN': 'Region_EN',
+            'CITY_TYPE_TH': 'City_type_TH', 'CITY_TYPE_EN': 'City_type_EN',
+            'PRICE_INDEX': 'Price_Index', 'NO': 'No',
+        }
+        df_load.columns = [_remap.get(c, c.lower()) for c in df_load.columns]
         # ปรับปี พ.ศ. เป็น ค.ศ.
         df_load['Year'] = df_load['Year'].apply(lambda x: x - 543 if x > 2500 else x)
         

@@ -6,3 +6,5 @@ openpyxl
 fpdf2
 duckdb
 numpy
+snowflake-connector-python
+mysql-connector-python

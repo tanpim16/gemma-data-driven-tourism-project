@@ -8,6 +8,10 @@ from fpdf.enums import XPos, YPos
 import io
 import re
 import math
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from utils.snowflake_connector import query_snowflake
+from utils.mysql_connector import save_trip
 import os
 import urllib.request
 
@@ -458,14 +462,22 @@ def get_duckdb_conn():
 @st.cache_data
 def load_data():
     try:
+        # ── Tourism data จาก Snowflake ────────────────────────────────────────
+        df_t = query_snowflake("SELECT * FROM TOURISM_DB.PUBLIC.TOURISM_STATS")
+        _remap = {
+            'YEAR': 'Year', 'MONTH': 'Month', 'PROVINCETHAI': 'ProvinceThai',
+            'PROVINCEEN': 'ProvinceEN', 'REGION_TH': 'Region_TH', 'REGION_EN': 'Region_EN',
+            'CITY_TYPE_TH': 'City_type_TH', 'CITY_TYPE_EN': 'City_type_EN',
+            'PRICE_INDEX': 'Price_Index', 'NO': 'No',
+        }
+        df_t.columns = [_remap.get(c, c.lower()) for c in df_t.columns]
+
+        # ── Festival data ยัง local (DuckDB + pandas) ─────────────────────────
         conn  = get_duckdb_conn()
-        df_t  = conn.execute(
-            "SELECT * FROM read_csv_auto('data/master_tourism_analysis.csv')"
-        ).df()
         df_fe = conn.execute(
             "SELECT * FROM read_csv_auto('data/Thailand_Festival_With_Events.csv')"
         ).df()
-        df_f  = pd.read_excel('data/Thailand_Festival_Master.xlsx')   # xlsx → pandas
+        df_f  = pd.read_excel('data/Thailand_Festival_Master.xlsx')
         df_t['ProvinceEN'] = df_t['ProvinceEN'].astype(str).str.strip()
         df_t['Region_EN'] = df_t['Region_EN'].astype(str).str.strip()
         df_t.dropna(subset=['ProvinceEN', 'Region_EN'], inplace=True)
@@ -2130,6 +2142,24 @@ Use this exact structure:
         st.session_state.generated = True
         st.success("✅ สร้างแผนเรียบร้อย!")
 
+        # ── Auto-log to MySQL (silent, no user action needed) ─────────────────
+        try:
+            _auto_name = f"{format_province(province)} · {t_date.strftime('%d/%m/%Y')}"
+            _itinerary_log = st.session_state.main_res
+            if st.session_state.gem_res:
+                _itinerary_log += "\n\n---\n\n" + st.session_state.gem_res
+            save_trip(
+                trip_name = _auto_name,
+                province  = format_province(province),
+                trip_date = t_date,
+                num_days  = days,
+                travelers = travelers,
+                budget    = budget_sel,
+                itinerary = _itinerary_log,
+            )
+        except Exception:
+            pass
+
 # ─── Combined Map + Weather ───────────────────────────────────────────────────
 if st.session_state.generated:
     main_locations_df = parse_locations_from_markdown(st.session_state.main_res)
@@ -2358,6 +2388,7 @@ if st.session_state.main_res:
         tl_html = build_timeline_html(st.session_state.main_res, gem=False)
         st.markdown(tl_html if tl_html else strip_coords_for_display(st.session_state.main_res),
                     unsafe_allow_html=True)
+
 
 # ─── Feature D: Hidden Gem Loop Route Builder ─────────────────────────────────
 st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)

@@ -3,6 +3,9 @@ import pandas as pd
 import duckdb
 import plotly.express as px
 import plotly.graph_objects as go
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from utils.snowflake_connector import query_snowflake
 
 st.set_page_config(page_title="CitySmart | Market Analysis", page_icon="📈", layout="wide")
 
@@ -123,14 +126,23 @@ def get_duckdb_conn():
 @st.cache_data
 def load_data():
     try:
+        # ── Tourism data จาก Snowflake (cache_data = serialize ได้) ──────────
+        df_t = query_snowflake("SELECT * FROM TOURISM_DB.PUBLIC.TOURISM_STATS")
+        # Snowflake คืน UPPERCASE columns → remap กลับเป็น original case
+        _remap = {
+            'YEAR': 'Year', 'MONTH': 'Month', 'PROVINCETHAI': 'ProvinceThai',
+            'PROVINCEEN': 'ProvinceEN', 'REGION_TH': 'Region_TH', 'REGION_EN': 'Region_EN',
+            'CITY_TYPE_TH': 'City_type_TH', 'CITY_TYPE_EN': 'City_type_EN',
+            'PRICE_INDEX': 'Price_Index', 'NO': 'No',
+        }
+        df_t.columns = [_remap.get(c, c.lower()) for c in df_t.columns]
+
+        # ── Festival data ยังคง local (DuckDB + pandas) ──────────────────────
         conn  = get_duckdb_conn()
-        df_t  = conn.execute(
-            "SELECT * FROM read_csv_auto('data/master_tourism_analysis.csv')"
-        ).df()
         df_fe = conn.execute(
             "SELECT * FROM read_csv_auto('data/Thailand_Festival_With_Events.csv')"
         ).df()
-        df_f  = pd.read_excel('data/Thailand_Festival_Master.xlsx')   # xlsx → pandas
+        df_f  = pd.read_excel('data/Thailand_Festival_Master.xlsx')
         return df_t.dropna(subset=['ProvinceEN']), df_f, df_fe
     except FileNotFoundError as e:
         st.error(f"ไม่พบไฟล์ข้อมูล: {e}"); st.stop()
