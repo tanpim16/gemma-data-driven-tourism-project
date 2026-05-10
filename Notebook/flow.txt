@@ -7,3 +7,5 @@ git push -u origin main
     model = genai.GenerativeModel('gemma-4-31b-it')
 
 python -m streamlit run app.py
+
+python -m pip install "pymongo[srv]==3.12"
