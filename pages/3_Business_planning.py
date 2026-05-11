@@ -5,7 +5,6 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 import os
-from datetime import datetime
 
 st.set_page_config(page_title="แผนธุรกิจการท่องเที่ยวไทย (Thailand Tourism Business Planning)", page_icon="📊", layout="wide")
 
@@ -21,227 +20,184 @@ st.markdown("""
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(BASE, "data")
 
-MAJOR_CITIES_TH = ["กรุงเทพมหานคร","เชียงใหม่","ภูเก็ต","ชลบุรี","สุราษฎร์ธานี"]
-SECONDARY_CITIES_TH = ["เชียงราย","กาญจนบุรี","กระบี่","อยุธยา","นครราชสีมา","อุดรธานี","ขอนแก่น","สงขลา","เพชรบุรี","ระยอง"]
-
-MONTH_MAP = {"Jan":"ม.ค.","Feb":"ก.พ.","Mar":"มี.ค.","Apr":"เม.ย.","May":"พ.ค.","Jun":"มิ.ย.",
-             "Jul":"ก.ค.","Aug":"ส.ค.","Sep":"ก.ย.","Oct":"ต.ค.","Nov":"พ.ย.","Dec":"ธ.ค."}
 MONTH_ORDER = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 MONTH_NUM = {m:i+1 for i,m in enumerate(MONTH_ORDER)}
+MONTH_TH_MAP = {1:"ม.ค.", 2:"ก.พ.", 3:"มี.ค.", 4:"เม.ย.", 5:"พ.ค.", 6:"มิ.ย.", 7:"ก.ค.", 8:"ส.ค.", 9:"ก.ย.", 10:"ต.ค.", 11:"พ.ย.", 12:"ธ.ค."}
+
+# สร้างแกน x เรียงตามเวลาสำหรับกราฟ 1 และ 2
+GLOBAL_TIME_LABELS = []
+for y in [2023, 2024, 2025]:
+    y_str = str(y)[-2:] 
+    for m in range(1, 13):
+        GLOBAL_TIME_LABELS.append(f"{MONTH_TH_MAP[m]} {y_str}")
 
 @st.cache_data
 def load_data():
     gt = pd.read_csv(os.path.join(DATA,"Google_Trends_Data.csv"))
     mt = pd.read_csv(os.path.join(DATA,"master_tourism_analysis.csv"))
-    tr = pd.read_csv(os.path.join(DATA,"Travel_search2026.csv"))
+    tr_path = os.path.join(DATA,"Travel_search2026.csv")
+    if not os.path.exists(tr_path): tr_path = os.path.join(DATA,"Frommongodb2026.csv")
+    tr = pd.read_csv(tr_path)
+    
     tr["date"] = pd.to_datetime(tr["date"])
     tr["interest"] = pd.to_numeric(tr["interest"], errors="coerce").fillna(0)
     mt["total_visitors"] = pd.to_numeric(mt["total_visitors"], errors="coerce").fillna(0)
     gt["Search_Interest"] = pd.to_numeric(gt["Search_Interest"], errors="coerce").fillna(0)
+    
+    if "Year" in mt.columns:
+        mt["Year"] = pd.to_numeric(mt["Year"], errors="coerce")
+        mt["Year"] = mt["Year"].apply(lambda x: x - 543 if pd.notnull(x) and x > 2500 else x)
+    if "Year_AD" in gt.columns:
+        gt["Year_AD"] = pd.to_numeric(gt["Year_AD"], errors="coerce")
+        gt["Year_AD"] = gt["Year_AD"].apply(lambda x: x - 543 if pd.notnull(x) and x > 2500 else x)
+        
     gt["month_num"] = gt["Month"].map(MONTH_NUM)
-    return gt, mt, tr
+    mt["month_num"] = mt["Month"].map(MONTH_NUM)
+    
+    prov_info = mt[['ProvinceThai', 'ProvinceEN', 'City_type_TH']].drop_duplicates().dropna()
+    majors = sorted(prov_info[prov_info['City_type_TH'] == 'เมืองหลัก']['ProvinceThai'].unique().tolist())
+    secs = sorted(prov_info[prov_info['City_type_TH'] == 'เมืองรอง']['ProvinceThai'].unique().tolist())
+    en_to_th = dict(zip(prov_info['ProvinceEN'], prov_info['ProvinceThai']))
+    
+    return gt, mt, tr, majors, secs, en_to_th
 
-gt, mt, tr = load_data()
+gt, mt, tr, MAJOR_CITIES_TH, SECONDARY_CITIES_TH, EN_TO_TH_MAP = load_data()
 
 st.title("📊 แผนธุรกิจการท่องเที่ยวไทย (Thailand Tourism Business Planning)")
 st.markdown("วิเคราะห์ข้อมูลเชิงลึกเพื่อวางแผนธุรกิจ โดยใช้ข้อมูล Google Trends และสถิตินักท่องเที่ยว ปี 2023–2026")
 
+# --- ส่วนที่ 1: เมืองหลัก ---
 st.divider()
-st.markdown('<div class="section-header"><h2>📈 ส่วนที่ 1: เมืองหลัก – นักท่องเที่ยว vs Google Search (2023–2025) (Major Cities – Visitors vs Google Search Trends)</h2></div>', unsafe_allow_html=True)
-
+st.markdown('<div class="section-header"><h2>📈 ส่วนที่ 1: เมืองหลัก – นักท่องเที่ยว vs Google Search (2023–2025)</h2></div>', unsafe_allow_html=True)
 st.markdown("""
 <div class="insight-card">
-<b>🔍 คำอธิบาย (Explanation):</b> กราฟด้านล่างแสดงความสัมพันธ์ระหว่าง <b>จำนวนนักท่องเที่ยว (Total Visitors)</b> 
-และ <b>ค่าความสนใจค้นหาบน Google (Google Search Interest)</b> รายเดือน ปี 2023–2025 สำหรับ <b>เมืองหลัก (Major Cities)</b><br>
-แกน Y ซ้าย = จำนวนนักท่องเที่ยว (Visitors) | แกน Y ขวา = ค่า Google Search Interest (0–100)
+<b>🔍 คำอธิบาย:</b> แสดงความสัมพันธ์ระหว่างจำนวนนักท่องเที่ยวและ Google Search (0–30) รายเดือน สำหรับ <b>เมืองหลัก</b><br>
+<i>* แกน Y ด้านซ้าย = จำนวนนักท่องเที่ยว (คน) | แกน Y ด้านขวา = ค่า Google Search Interest (0–30)</i>
 </div>
 """, unsafe_allow_html=True)
 
-major_mt = mt[mt["ProvinceThai"].isin(MAJOR_CITIES_TH)].copy()
-major_mt["month_num"] = major_mt["Month"].map(MONTH_NUM)
-major_gt = gt[gt["ProvinceThai"].isin(MAJOR_CITIES_TH)].copy()
+major_options = ["ทั่วประเทศ", "รวมเมืองหลัก"] + MAJOR_CITIES_TH
+city_sel_major = st.multiselect("เลือกตัวเลือกหรือจังหวัด", major_options, default=["รวมเมืองหลัก"], max_selections=10, key="major_city")
 
-city_sel_major = st.selectbox("เลือกจังหวัดเมืองหลัก (Select Major City)", MAJOR_CITIES_TH, key="major_city")
+if city_sel_major:
+    fig1 = make_subplots(specs=[[{"secondary_y":True}]])
+    for idx, sel in enumerate(city_sel_major):
+        if sel == "ทั่วประเทศ":
+            df_mt = mt.groupby(["Year","month_num"])["total_visitors"].sum().reset_index()
+            df_gt = gt.groupby(["Year_AD","month_num"])["Search_Interest"].mean().reset_index()
+        elif sel == "รวมเมืองหลัก":
+            df_mt = mt[mt["ProvinceThai"].isin(MAJOR_CITIES_TH)].groupby(["Year","month_num"])["total_visitors"].sum().reset_index()
+            df_gt = gt[gt["ProvinceThai"].isin(MAJOR_CITIES_TH)].groupby(["Year_AD","month_num"])["Search_Interest"].mean().reset_index()
+        else:
+            df_mt = mt[mt["ProvinceThai"]==sel].groupby(["Year","month_num"])["total_visitors"].sum().reset_index()
+            df_gt = gt[gt["ProvinceThai"]==sel].groupby(["Year_AD","month_num"])["Search_Interest"].mean().reset_index()
 
-mt_city = major_mt[major_mt["ProvinceThai"]==city_sel_major].copy()
-mt_city_monthly = mt_city.groupby(["Year","month_num"])["total_visitors"].sum().reset_index()
-mt_city_monthly["label"] = mt_city_monthly["Year"].astype(str)+"-M"+mt_city_monthly["month_num"].astype(str).str.zfill(2)
-mt_city_monthly = mt_city_monthly.sort_values(["Year","month_num"])
+        df_mt["label"] = df_mt["month_num"].map(MONTH_TH_MAP) + " " + df_mt["Year"].astype(int).astype(str).str[-2:]
+        df_gt["label"] = df_gt["month_num"].map(MONTH_TH_MAP) + " " + df_gt["Year_AD"].astype(int).astype(str).str[-2:]
+        fig1.add_trace(go.Scatter(x=df_mt["label"], y=df_mt["total_visitors"], name=f"นทท. ({sel})", mode="lines+markers"), secondary_y=False)
+        fig1.add_trace(go.Scatter(x=df_gt["label"], y=df_gt["Search_Interest"], name=f"Search ({sel})", mode="lines", line=dict(dash="dash")), secondary_y=True)
 
-gt_city = major_gt[(major_gt["ProvinceThai"]==city_sel_major)].copy()
-gt_city_monthly = gt_city.groupby(["Year_AD","month_num"])["Search_Interest"].mean().reset_index()
-gt_city_monthly["label"] = gt_city_monthly["Year_AD"].astype(str)+"-M"+gt_city_monthly["month_num"].astype(str).str.zfill(2)
-gt_city_monthly = gt_city_monthly.sort_values(["Year_AD","month_num"])
+    fig1.update_layout(height=450, template="plotly_white", legend=dict(orientation="h", y=-0.2), xaxis=dict(categoryorder="array", categoryarray=GLOBAL_TIME_LABELS))
+    fig1.update_yaxes(title_text="จำนวนนักท่องเที่ยว (คน)", secondary_y=False)
+    fig1.update_yaxes(title_text="Search Interest (0-30)", secondary_y=True, range=[0, 30], showgrid=False)
+    st.plotly_chart(fig1, use_container_width=True)
 
-fig1 = make_subplots(specs=[[{"secondary_y":True}]])
-fig1.add_trace(go.Scatter(x=mt_city_monthly["label"],y=mt_city_monthly["total_visitors"],name="นักท่องเที่ยว (Visitors)",mode="lines+markers",line=dict(color="#0077B6",width=3),marker=dict(size=7,symbol="circle")),secondary_y=False)
-fig1.add_trace(go.Scatter(x=gt_city_monthly["label"],y=gt_city_monthly["Search_Interest"],name="Google Search Interest",mode="lines+markers",line=dict(color="#f97316",width=2.5),marker=dict(size=6)),secondary_y=True)
-fig1.update_layout(title=f"เมืองหลัก: {city_sel_major} – นักท่องเที่ยว vs Google Search (2023–2025)",height=420,template="plotly_white",legend=dict(orientation="h",y=1.1),margin=dict(t=60,b=50))
-fig1.update_yaxes(title_text="จำนวนนักท่องเที่ยว (Visitors)",secondary_y=False)
-fig1.update_yaxes(title_text="Google Search Interest (0–100)",secondary_y=True)
-st.plotly_chart(fig1, use_container_width=True)
-
+# --- ส่วนที่ 2: เมืองรอง ---
 st.divider()
-st.markdown('<div class="section-header"><h2>🏘️ ส่วนที่ 2: เมืองรอง – นักท่องเที่ยว vs Google Search (2023–2025) (Secondary Cities – Visitors vs Google Search Trends)</h2></div>', unsafe_allow_html=True)
+st.markdown('<div class="section-header"><h2>🏘️ ส่วนที่ 2: เมืองรอง – นักท่องเที่ยว vs Google Search (2023–2025)</h2></div>', unsafe_allow_html=True)
+sec_options = ["ทั่วประเทศ", "รวมเมืองรอง"] + SECONDARY_CITIES_TH
+city_sel_sec = st.multiselect("เลือกตัวเลือกหรือจังหวัด", sec_options, default=["รวมเมืองรอง"], max_selections=10, key="sec_city")
 
-st.markdown("""
-<div class="insight-card">
-<b>🔍 คำอธิบาย (Explanation):</b> กราฟด้านล่างแสดงความสัมพันธ์เดียวกันสำหรับ <b>เมืองรอง (Secondary Cities)</b> 
-ซึ่งมีพฤติกรรมที่แตกต่างจากเมืองหลักในเชิงข้อมูล
-</div>
-""", unsafe_allow_html=True)
+if city_sel_sec:
+    fig2 = make_subplots(specs=[[{"secondary_y":True}]])
+    for idx, sel in enumerate(city_sel_sec):
+        if sel == "ทั่วประเทศ":
+            df_mt = mt.groupby(["Year","month_num"])["total_visitors"].sum().reset_index()
+            df_gt = gt.groupby(["Year_AD","month_num"])["Search_Interest"].mean().reset_index()
+        elif sel == "รวมเมืองรอง":
+            df_mt = mt[mt["ProvinceThai"].isin(SECONDARY_CITIES_TH)].groupby(["Year","month_num"])["total_visitors"].sum().reset_index()
+            df_gt = gt[gt["ProvinceThai"].isin(SECONDARY_CITIES_TH)].groupby(["Year_AD","month_num"])["Search_Interest"].mean().reset_index()
+        else:
+            df_mt = mt[mt["ProvinceThai"]==sel].groupby(["Year","month_num"])["total_visitors"].sum().reset_index()
+            df_gt = gt[gt["ProvinceThai"]==sel].groupby(["Year_AD","month_num"])["Search_Interest"].mean().reset_index()
 
-sec_mt = mt[mt["ProvinceThai"].isin(SECONDARY_CITIES_TH)].copy()
-sec_mt["month_num"] = sec_mt["Month"].map(MONTH_NUM)
-sec_gt = gt[gt["ProvinceThai"].isin(SECONDARY_CITIES_TH)].copy()
+        df_mt["label"] = df_mt["month_num"].map(MONTH_TH_MAP) + " " + df_mt["Year"].astype(int).astype(str).str[-2:]
+        df_gt["label"] = df_gt["month_num"].map(MONTH_TH_MAP) + " " + df_gt["Year_AD"].astype(int).astype(str).str[-2:]
+        fig2.add_trace(go.Scatter(x=df_mt["label"], y=df_mt["total_visitors"], name=f"นทท. ({sel})", mode="lines+markers"), secondary_y=False)
+        fig2.add_trace(go.Scatter(x=df_gt["label"], y=df_gt["Search_Interest"], name=f"Search ({sel})", mode="lines", line=dict(dash="dash")), secondary_y=True)
 
-city_sel_sec = st.selectbox("เลือกจังหวัดเมืองรอง (Select Secondary City)", SECONDARY_CITIES_TH, key="sec_city")
-
-mt_sec = sec_mt[sec_mt["ProvinceThai"]==city_sel_sec].copy()
-mt_sec_monthly = mt_sec.groupby(["Year","month_num"])["total_visitors"].sum().reset_index()
-mt_sec_monthly["label"] = mt_sec_monthly["Year"].astype(str)+"-M"+mt_sec_monthly["month_num"].astype(str).str.zfill(2)
-mt_sec_monthly = mt_sec_monthly.sort_values(["Year","month_num"])
-
-gt_sec = sec_gt[sec_gt["ProvinceThai"]==city_sel_sec].copy()
-gt_sec_monthly = gt_sec.groupby(["Year_AD","month_num"])["Search_Interest"].mean().reset_index()
-gt_sec_monthly["label"] = gt_sec_monthly["Year_AD"].astype(str)+"-M"+gt_sec_monthly["month_num"].astype(str).str.zfill(2)
-gt_sec_monthly = gt_sec_monthly.sort_values(["Year_AD","month_num"])
-
-fig2 = make_subplots(specs=[[{"secondary_y":True}]])
-fig2.add_trace(go.Scatter(x=mt_sec_monthly["label"],y=mt_sec_monthly["total_visitors"],name="นักท่องเที่ยว (Visitors)",mode="lines+markers",line=dict(color="#00b4d8",width=3),marker=dict(size=7,symbol="circle")),secondary_y=False)
-fig2.add_trace(go.Scatter(x=gt_sec_monthly["label"],y=gt_sec_monthly["Search_Interest"],name="Google Search Interest",mode="lines+markers",line=dict(color="#ef4444",width=2.5),marker=dict(size=6)),secondary_y=True)
-fig2.update_layout(title=f"เมืองรอง: {city_sel_sec} – นักท่องเที่ยว vs Google Search (2023–2025)",height=420,template="plotly_white",legend=dict(orientation="h",y=1.1),margin=dict(t=60,b=50))
-fig2.update_yaxes(title_text="จำนวนนักท่องเที่ยว (Visitors)",secondary_y=False)
-fig2.update_yaxes(title_text="Google Search Interest (0–100)",secondary_y=True)
-st.plotly_chart(fig2, use_container_width=True)
+    fig2.update_layout(height=450, template="plotly_white", legend=dict(orientation="h", y=-0.2), xaxis=dict(categoryorder="array", categoryarray=GLOBAL_TIME_LABELS))
+    fig2.update_yaxes(title_text="จำนวนนักท่องเที่ยว (คน)", secondary_y=False)
+    fig2.update_yaxes(title_text="Search Interest (0-30)", secondary_y=True, range=[0, 30], showgrid=False)
+    st.plotly_chart(fig2, use_container_width=True)
 
 st.markdown("""
 <div class="analysis-box">
-<h4>🧠 การวิเคราะห์เชิงข้อมูล: เมืองหลัก vs เมืองรอง (Data Analytics: Major vs Secondary Cities)</h4>
-<br>
-<b>1. รูปแบบ Lag (Search Lag Pattern):</b><br>
-เมืองหลัก เช่น กรุงเทพฯ ภูเก็ต – Google Search พุ่งสูงขึ้น <b>4–6 สัปดาห์ก่อน</b>นักท่องเที่ยวจะเดินทางจริง 
-แสดงให้เห็นว่านักท่องเที่ยวต่างชาติมีการวางแผนล่วงหน้าในระยะยาว (Long Lead Time Planning)<br>
-เมืองรอง เช่น เชียงราย กาญจนบุรี – Lag สั้นกว่าเพียง <b>2–3 สัปดาห์</b> เพราะนักท่องเที่ยวส่วนใหญ่เป็นชาวไทย 
-ที่มักตัดสินใจเดินทางเร็ว (Short-Notice Domestic Travel)<br><br>
-<b>2. ความสัมพันธ์ (Correlation):</b><br>
-เมืองหลัก: ค่าสหสัมพันธ์ (Pearson Correlation) ระหว่าง Search Interest กับ Visitor Count อยู่ที่ประมาณ <b>r = 0.75–0.85</b> 
-แสดงถึงความสัมพันธ์สูง (Strong Positive Correlation) โดยเฉพาะในช่วง High Season (พ.ย.–ก.พ.)<br>
-เมืองรอง: ค่าสหสัมพันธ์อยู่ที่ประมาณ <b>r = 0.55–0.70</b> ซึ่งต่ำกว่า เนื่องจากมีปัจจัยอื่น เช่น เทศกาลท้องถิ่น 
-วันหยุดยาว และการท่องเที่ยวแบบ Spontaneous ที่ไม่ผ่าน Search มากนัก<br><br>
-<b>3. ความผันผวน (Volatility):</b><br>
-เมืองรอง มี <b>ความผันผวนสูงกว่า (Higher Volatility)</b> ในทั้ง Search Interest และ Visitor Count 
-ทำให้ยากต่อการพยากรณ์ธุรกิจ ธุรกิจในเมืองรองจึงควรเตรียมพร้อมสำหรับ Demand ที่ไม่แน่นอน 
-ด้วยการบริหาร Flexible Inventory และ Dynamic Pricing<br><br>
-<b>4. โอกาสทางธุรกิจ (Business Opportunity):</b><br>
-เมืองหลัก – ใช้ Search Data วางแผน Marketing Campaign ล่วงหน้า 4–6 สัปดาห์<br>
-เมืองรอง – มีแนวโน้ม Search Interest เติบโตปีละ 8–15% แสดงถึง Emerging Demand ที่น่าลงทุน
+<h4>🧠 การวิเคราะห์ข้อมูลความต่างของระยะเวลาทิ้งช่วง (Lag Time) ระหว่างเมืองหลักและเมืองรอง</h4>
+จากการวิเคราะห์กราฟทั้งสองด้านบน พบพฤติกรรมของนักท่องเที่ยวที่น่าสนใจ ดังนี้:<br><br>
+<b>1. เมืองหลัก (Lag Time = 1 เดือน):</b> Search นำหน้า นทท. จริงประมาณ 1 เดือน<br>
+<b>2. เมืองรอง (Lag Time = 2 เดือน):</b> Search นำหน้า นทท. จริงประมาณ 2 เดือน เนื่องจากเน้นการวางแผนเดินทางในประเทศล่วงหน้า
 </div>
 """, unsafe_allow_html=True)
 
+# --- ส่วนที่ 3: พยากรณ์ 2026 ---
 st.divider()
-st.markdown('<div class="section-header"><h2>🔮 ส่วนที่ 3: แดชบอร์ดพยากรณ์ปี 2026 (2026 Interactive Prediction Dashboard)</h2></div>', unsafe_allow_html=True)
-
-st.markdown("""
-<div class="insight-card">
-<b>📡 ข้อมูลที่ใช้:</b> Travel_search2026.csv – ข้อมูล Google Search Interest รายวัน เดือน ม.ค.–เม.ย. 2026 
-สำหรับทุกจังหวัดในประเทศไทย นำมาสรุปรายเดือนและใช้เป็นเส้นพยากรณ์แนวโน้มนักท่องเที่ยว
-</div>
-""", unsafe_allow_html=True)
+st.markdown('<div class="section-header"><h2>🔮 ส่วนที่ 3: แดชบอร์ดพยากรณ์ปี 2026 (รวมปี 2025)</h2></div>', unsafe_allow_html=True)
 
 col_f1, col_f2 = st.columns([1,2])
 with col_f1:
-    city_type_sel = st.radio("ประเภทเมือง (City Type)", ["เมืองหลัก (Major City)","เมืองรอง (Secondary City)","ทั้งคู่ (Both)"], key="city_type_2026")
+    city_type_sel = st.selectbox("ประเภทเมือง", ["ทั่วประเทศ", "เมืองหลัก (Major City)", "เมืองรอง (Secondary City)"], key="city_type_2026")
 
 with col_f2:
-    all_provinces_tr = sorted(tr["province_en"].dropna().unique().tolist())
-    if city_type_sel == "เมืองหลัก (Major City)":
-        candidate = ["Bangkok","Chiang Mai","Phuket","Chon Buri","Surat Thani"]
-    elif city_type_sel == "เมืองรอง (Secondary City)":
-        candidate = ["Chiang Rai","Kanchanaburi","Krabi","Ayutthaya","Nakhon Ratchasima","Udon Thani","Khon Kaen","Songkhla","Phetchaburi","Rayong"]
-    else:
-        candidate = ["Bangkok","Chiang Mai","Phuket","Chiang Rai","Kanchanaburi","Krabi","Ayutthaya","Nakhon Ratchasima","Udon Thani","Khon Kaen"]
+    if city_type_sel == "เมืองหลัก (Major City)": options = ["รวมเมืองหลัก"] + MAJOR_CITIES_TH
+    elif city_type_sel == "เมืองรอง (Secondary City)": options = ["รวมเมืองรอง"] + SECONDARY_CITIES_TH
+    else: options = ["รวมทั่วประเทศ"] + sorted(list(set(MAJOR_CITIES_TH + SECONDARY_CITIES_TH)))
+    selected_prov = st.selectbox("เลือกตัวเลือกหรือจังหวัด", options=options, key="prov_sel_2026")
 
-    avail = [c for c in candidate if c in all_provinces_tr]
-    if not avail:
-        avail = all_provinces_tr[:10]
-    avail_10 = avail[:10]
+if selected_prov:
+    th_name_list = MAJOR_CITIES_TH if selected_prov == "รวมเมืองหลัก" else (SECONDARY_CITIES_TH if selected_prov == "รวมเมืองรอง" else (sorted(list(set(MAJOR_CITIES_TH + SECONDARY_CITIES_TH))) if selected_prov == "รวมทั่วประเทศ" else [selected_prov]))
+    
+    # 1. Metric Setup
+    prov_metrics = []
+    for th_name in th_name_list:
+        v_sum = mt[mt["ProvinceThai"]==th_name]["total_visitors"].sum()
+        s_sum = gt[gt["ProvinceThai"]==th_name]["Search_Interest"].sum()
+        ratio = v_sum / s_sum if s_sum > 0 else 3000
+        prov_metrics.append({"prov_th_std": th_name, "ratio": ratio, "lag": 1 if th_name in MAJOR_CITIES_TH else 2})
+    df_metrics = pd.DataFrame(prov_metrics)
 
-    selected_provs = st.multiselect(
-        "เลือกจังหวัด (Select Provinces) – สูงสุด 10 จังหวัด",
-        options=avail_10, default=avail_10[:3], key="prov_sel_2026",
-        help="เลือกได้สูงสุด 10 จังหวัด"
-    )
+    # 2. Search & Forecast Logic
+    tr_temp = tr.copy()
+    tr_temp["prov_th_std"] = tr_temp["province_en"].map(EN_TO_TH_MAP).fillna(tr_temp["province_th"])
+    tr_sel = tr_temp[tr_temp["prov_th_std"].isin(th_name_list)].copy()
+    prov_search_2026 = tr_sel.groupby(["prov_th_std", tr_sel["date"].dt.month])["interest"].mean().reset_index().rename(columns={"date":"month"})
+    prov_search_2026["year"] = 2026
 
-if not selected_provs:
-    st.warning("กรุณาเลือกอย่างน้อย 1 จังหวัด (Please select at least 1 province)")
-else:
-    tr_sel = tr[tr["province_en"].isin(selected_provs)].copy()
-    tr_sel["month"] = tr_sel["date"].dt.month
+    gt_2025 = gt[(gt["ProvinceThai"].isin(th_name_list)) & (gt["Year_AD"] == 2025) & (gt["month_num"].isin([11, 12]))]
+    gt_2025_search = gt_2025.groupby(["ProvinceThai", "month_num"])["Search_Interest"].mean().reset_index().rename(columns={"ProvinceThai": "prov_th_std", "month_num": "month", "Search_Interest": "interest"})
+    gt_2025_search["year"] = 2025
 
-    MONTH_TH_LABEL = {1:"ม.ค.",2:"ก.พ.",3:"มี.ค.",4:"เม.ย.",5:"พ.ค.",6:"มิ.ย.",
-                      7:"ก.ค.",8:"ส.ค.",9:"ก.ย.",10:"ต.ค.",11:"พ.ย.",12:"ธ.ค."}
+    all_search = pd.concat([gt_2025_search, prov_search_2026], ignore_index=True).merge(df_metrics, on="prov_th_std", how="left")
+    all_search["abs_m"] = all_search["year"] * 12 + all_search["month"] - 1
+    all_search["p_abs_m"] = all_search["abs_m"] + all_search["lag"]
+    all_search["p_year"], all_search["p_month"] = all_search["p_abs_m"] // 12, all_search["p_abs_m"] % 12 + 1
+    all_search["p_vis"] = all_search["interest"] * all_search["ratio"]
 
-    # รวมค่าเฉลี่ยรายเดือน แต่ละจังหวัด
-    monthly_avg = (
-        tr_sel.groupby(["province_en","month"])["interest"]
-        .mean().round(1).reset_index()
-        .sort_values(["province_en","month"])
-    )
-    monthly_avg["month_th"] = monthly_avg["month"].map(MONTH_TH_LABEL)
+    pred_2026_agg = all_search[all_search["p_year"] == 2026].groupby("p_month")["p_vis"].sum().reset_index()
+    search_agg = prov_search_2026.groupby("month")["interest"].mean().reset_index()
+    mt_2025_agg = mt[(mt["Year"] == 2025) & (mt["ProvinceThai"].isin(th_name_list))].groupby("month_num")["total_visitors"].sum().reset_index()
 
-    fig3 = go.Figure()
-    colors = px.colors.qualitative.Bold
-    for i, prov in enumerate(selected_provs):
-        pdata = monthly_avg[monthly_avg["province_en"]==prov].sort_values("month")
-        if pdata.empty:
-            continue
-        fig3.add_trace(go.Scatter(
-            x=pdata["month_th"],
-            y=pdata["interest"],
-            name=prov,
-            mode="lines+markers+text",
-            line=dict(color=colors[i % len(colors)], width=2.5),
-            marker=dict(size=9, symbol="circle"),
-            text=pdata["interest"].astype(str),
-            textposition="top center",
-            textfont=dict(size=10),
-            hovertemplate=f"<b>{prov}</b><br>เดือน: %{{x}}<br>Search Interest: %{{y:.1f}}<extra></extra>",
-        ))
+    fig3 = make_subplots(specs=[[{"secondary_y": True}]])
+    fig3.add_trace(go.Scatter(x=search_agg["month"].map(MONTH_TH_MAP), y=search_agg["interest"], name="Search Interest 2026", line=dict(color="#f97316")), secondary_y=True)
+    if not mt_2025_agg.empty: fig3.add_trace(go.Scatter(x=mt_2025_agg["month_num"].map(MONTH_TH_MAP), y=mt_2025_agg["total_visitors"], name="นทท. 2025", line=dict(color="#10b981", dash="dash")), secondary_y=False)
+    fig3.add_trace(go.Scatter(x=pred_2026_agg["p_month"].map(MONTH_TH_MAP), y=pred_2026_agg["p_vis"], name="พยากรณ์ นทท. 2026", line=dict(color="#0077B6", dash="dot"), marker=dict(symbol="diamond")), secondary_y=False)
 
-    # เรียงแกน X ตามลำดับเดือน
-    all_months_present = sorted(monthly_avg["month"].unique())
-    ordered_labels = [MONTH_TH_LABEL[m] for m in all_months_present]
-
-    fig3.update_layout(
-        title="แนวโน้ม Google Search Interest รายเดือน ปี 2026 จำแนกตามจังหวัด<br><sup>(Monthly Google Search Interest by Province – 2026)</sup>",
-        xaxis=dict(title="เดือน (Month)", categoryorder="array", categoryarray=ordered_labels),
-        yaxis=dict(title="ค่าความสนใจ (Search Interest 0–100)", range=[0,105]),
-        height=500, template="plotly_white",
-        legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1),
-        margin=dict(t=80, b=60),
-        hovermode="x unified",
-    )
-    fig3.add_annotation(
-        text="⚠️ ข้อมูล ม.ค.–เม.ย. 2026 | แต่ละเส้น = 1 จังหวัด (Each line = 1 province)",
-        xref="paper", yref="paper", x=0, y=-0.13, showarrow=False,
-        font=dict(size=11, color="#64748b"), align="left"
-    )
+    fig3.update_layout(title=f"พยากรณ์ปี 2026: {selected_prov}", height=550, template="plotly_white", legend=dict(orientation="h", y=-0.3), xaxis=dict(categoryorder="array", categoryarray=list(MONTH_TH_MAP.values())))
+    fig3.update_yaxes(title_text="จำนวนนักท่องเที่ยว (คน)", secondary_y=False)
+    fig3.update_yaxes(title_text="Search Interest (0-30)", secondary_y=True, range=[0, 30], showgrid=False)
+    
+    # เพิ่ม Annotation หมายเหตุตามคำขอ
+    fig3.add_annotation(text="⚠️ หมายเหตุ: ค่าที่ได้ในเดือนล่าสุดที่พยากรณ์ เป็นค่าที่พยากรณ์จากจังหวัดหลักเท่านั้น", xref="paper", yref="paper", x=0, y=-0.15, showarrow=False, font=dict(size=12, color="red"))
     st.plotly_chart(fig3, use_container_width=True)
-
-    st.subheader("📊 ตารางสรุปค่าเฉลี่ย Search Interest รายจังหวัด (Summary Table by Province)")
-    summary = monthly_avg.groupby("province_en")["interest"].agg(["mean","max","min"]).round(1).reset_index()
-    summary.columns = ["จังหวัด (Province)","เฉลี่ย (Avg)","สูงสุด (Max)","ต่ำสุด (Min)"]
-    summary["แนวโน้ม (Trend)"] = summary["เฉลี่ย (Avg)"].apply(lambda x: "🔥 สูง (High)" if x>=50 else ("📈 ปานกลาง (Medium)" if x>=25 else "📉 ต่ำ (Low)"))
-    st.dataframe(summary, hide_index=True, use_container_width=True)
-
-    st.markdown("""
-<div class="analysis-box">
-<b>💡 การแปลผลสำหรับธุรกิจ (Business Interpretation):</b><br>
-• จังหวัดที่มีค่า Search Interest <b>≥ 50</b> ในช่วง ม.ค.–เม.ย. 2026 คาดว่าจะมีนักท่องเที่ยวหนาแน่นใน <b>พ.ค.–มิ.ย. 2026</b> (โดยอ้างอิง Lag 4–6 สัปดาห์)<br>
-• ธุรกิจควรเริ่มเตรียม <b>สต็อกสินค้า บุคลากร และโปรโมชั่น</b> ตั้งแต่เดือนมีนาคม–เมษายน<br>
-• จังหวัดที่ Search Interest ลดลงต่อเนื่อง ควรพิจารณาทำ <b>กิจกรรมกระตุ้นตลาด (Marketing Campaign)</b> เพื่อดึงดูดนักท่องเที่ยว
-</div>
-""", unsafe_allow_html=True)
 
 st.caption("ข้อมูล: Google_Trends_Data.csv · master_tourism_analysis.csv · Travel_search2026.csv")
