@@ -11,7 +11,7 @@ import math
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils.snowflake_connector import query_snowflake
-from utils.mysql_connector import save_trip
+from utils.mysql_connector import save_trip, get_all_trips
 import os
 import urllib.request
 
@@ -1475,7 +1475,7 @@ ui = {
         'title': "วางแผนทริป", 'accent': "แบบสมาร์ท",
         'sub': "คัดกรองข้อมูลเทศกาลและอากาศเพื่อทริปที่สมบูรณ์แบบ",
         'btn': "🚀 สร้างแผนเดินทาง", 'dest': "เลือกจังหวัด",
-        'days': "ไปกี่วัน", 'style': "สไตล์การเที่ยว",
+        'days': "ไปกี่วัน", 'travelers': "จำนวนคน", 'style': "สไตล์การเที่ยว",
         'weather_head': "พยากรณ์อากาศ",
         'styles': ["คาเฟ่และถ่ายรูป 📸", "ธรรมชาติและภูเขา ⛰️", "วัฒนธรรมและวัด 🛕",
                    "ตะลอนกินสตรีทฟู้ด 🍜", "พักผ่อนชิลล์ๆ 🧖", "สายบาร์และกลางคืน 🍸"],
@@ -1502,7 +1502,7 @@ ui = {
         'budget_section': "## 💰 สรุปงบประมาณ",
         'hotel_section': "## 🏨 ที่พักแนะนำ",
         'hotel_hint': "**ชื่อที่พักจริง**: คำอธิบายสั้นๆ",
-        'budget_items': "- ค่าที่พัก:\n- ค่าอาหาร:\n- ค่าเดินทาง:\n- ค่าเข้าสถานที่และกิจกรรม:\n- รวมโดยประมาณ:",
+        'budget_items': "- ค่าที่พัก:\n- ค่าอาหาร:\n- ค่าเดินทาง:\n- ค่าเข้าสถานที่และกิจกรรม:\n- รวมโดยประมาณ (ต่อคน):",
         'loop_title': "สร้างเส้นทาง Loop Trip · Hidden Gem Route",
         'loop_sub': "เส้นทางที่ Google Maps ไม่เคยแนะนำ — เมืองหลัก → เมืองรอง → กลับบ้าน พร้อมระยะทาง เวลาขับรถ และ AI สรุปไฮไลต์แต่ละจุด",
         'loop_no_stops': "ไม่พบเมืองรองในรัศมี 350 กม. สำหรับสร้าง Loop Trip",
@@ -1516,7 +1516,7 @@ ui = {
         'title': "Plan Your Trip", 'accent': "The Smart Way",
         'sub': "Festival & weather insights for your perfect Thai adventure",
         'btn': "🚀 Generate Itinerary", 'dest': "Select Province",
-        'days': "How many days", 'style': "Travel Style",
+        'days': "How many days", 'travelers': "Travelers", 'style': "Travel Style",
         'weather_head': "Weather Forecast",
         'styles': ["Café & Photography 📸", "Nature & Mountains ⛰️", "Culture & Temples 🛕",
                    "Street Food Tour 🍜", "Relax & Chill 🧖", "Bar & Nightlife 🍸"],
@@ -1543,7 +1543,7 @@ ui = {
         'budget_section': "## 💰 Budget Summary",
         'hotel_section': "## 🏨 Recommended Hotels",
         'hotel_hint': "**Real Hotel Name**: short description",
-        'budget_items': "- Accommodation:\n- Food:\n- Transport:\n- Entrance fees & activities:\n- Total estimate:",
+        'budget_items': "- Accommodation:\n- Food:\n- Transport:\n- Entrance fees & activities:\n- Total estimate (per person):",
         'loop_title': "Build Loop Trip · Hidden Gem Route",
         'loop_sub': "Routes Google Maps never suggests — Main City → Secondary City → Home, with distances, drive times, and AI highlights for each stop",
         'loop_no_stops': "No secondary cities within 350 km for a loop route.",
@@ -1857,6 +1857,7 @@ with c1:
 
 with c2:
     days = st.slider(f"☀️ {t['days']}", 1, 7, 3)
+    travelers = st.slider(f"👥 {t.get('travelers', 'จำนวนคน')}", 1, 20, 2)
 
 with c3:
     selected_style = st.multiselect(
@@ -2055,7 +2056,7 @@ No placeholders like [X] or [specify] — fill every field with real information
 Do NOT put Lat/Lon coordinates in the daily plan. Only put them in the ## 🗺️ Coordinates section at the end.
 Use only real place names that exist in the province.
 Each slot: include place name + main activity + time range.
-All budget numbers MUST use comma formatting, e.g. 1,500 บาท — never write without commas like 1500 บาท.
+All budget numbers MUST use comma formatting, e.g. 1,500 บาท — never write without commas like 1500 บาท. In the total estimate line, always specify per person (ต่อคน / per person).
 
 Create a {days}-day itinerary for {format_province(province)}, {start_date_str} to {end_date_str}
 Style: {style_str}
@@ -2093,10 +2094,11 @@ Use this exact structure:
             gem_prov_th = format_province(st.session_state.gem_city)
             _num_instr = (
                 "ในส่วนสรุปงบประมาณ ให้ใช้ตัวเลขอารบิคเท่านั้น เช่น 3,000 บาท "
-                "ห้ามเขียนเป็นตัวอักษรไทย เช่น สามพันบาท หรือ สองพันห้าร้อยบาท โดยเด็ดขาด"
+                "ห้ามเขียนเป็นตัวอักษรไทย เช่น สามพันบาท โดยเด็ดขาด "
+                "และในบรรทัดรวมโดยประมาณ ให้ระบุว่าเป็นต่อคนเสมอ"
                 if st.session_state.lang == 'TH' else
                 "In the budget section, use Arabic numerals only, e.g. 3,000 THB. "
-                "Never write amounts as words."
+                "Never write amounts as words. Always specify per person in the total estimate line."
             )
             gem_prompt = f"""
 {_lang_instr}
@@ -2144,21 +2146,20 @@ Use this exact structure:
 
         # ── Auto-log to MySQL (silent, no user action needed) ─────────────────
         try:
-            _auto_name = f"{format_province(province)} · {t_date.strftime('%d/%m/%Y')}"
             _itinerary_log = st.session_state.main_res
             if st.session_state.gem_res:
                 _itinerary_log += "\n\n---\n\n" + st.session_state.gem_res
             save_trip(
-                trip_name = _auto_name,
                 province  = format_province(province),
                 trip_date = t_date,
                 num_days  = days,
                 travelers = travelers,
-                budget    = budget_sel,
+                budget    = budget_level,
                 itinerary = _itinerary_log,
             )
-        except Exception:
-            pass
+            get_all_trips.clear()
+        except Exception as _e:
+            st.session_state['_mysql_err'] = str(_e)
 
 # ─── Combined Map + Weather ───────────────────────────────────────────────────
 if st.session_state.generated:
@@ -2502,6 +2503,31 @@ End with:
 """
                 with st.spinner(t['loop_spinner']):
                     st.session_state.loop_res = call_ai_strict(_loop_prompt, mode="general")
+
+                # ── Update MySQL row ที่ log ไว้แล้วด้วย loop data ──────────
+                try:
+                    import re as _re
+                    _route_str = " → ".join([_prov_display_loop] + _stop_labels + [_prov_display_loop])
+                    # estimate budget จาก budget_level × days × travelers × เฉลี่ยต่อวัน
+                    _bpd = {'💰 สุดประหยัด': 800, '💵 เที่ยวสบาย': 2000,
+                            '💎 เต็มที่ลักชู': 5000, '💰 Budget': 800,
+                            '💵 Comfortable': 2000, '💎 Luxury': 5000}
+                    _est = _bpd.get(budget_level, 1500) * days * travelers
+                    from utils.mysql_connector import _cursor as _mc
+                    _conn, _cur = _mc()
+                    _cur.execute(
+                        """UPDATE saved_trips
+                           SET loop_route=%s, loop_highlights=%s, estimated_budget_thb=%s
+                           WHERE province=%s AND trip_date=%s
+                           ORDER BY created_at DESC LIMIT 1""",
+                        (_route_str, st.session_state.loop_res, _est,
+                         format_province(province), t_date)
+                    )
+                    _conn.commit()
+                    _cur.close()
+                    get_all_trips.clear()
+                except Exception:
+                    pass
 
         if st.session_state.loop_res:
             st.markdown(
