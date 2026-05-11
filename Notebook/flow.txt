@@ -9,3 +9,52 @@ git push -u origin main
 python -m streamlit run app.py
 
 python -m pip install "pymongo[srv]==3.12"
+
+---------------------------------------------------------
+
+Git Workflow สำหรับทำงานร่วมกัน 2 คน
+ทุกครั้งก่อน Push งานตัวเอง ทำตาม 3 ขั้นนี้เสมอ
+
+# 1. Commit งานตัวเองก่อน
+git add <ไฟล์ที่แก้>        # หรือ git add . เพื่อ add ทุกไฟล์
+git commit -m "อธิบายว่าแก้อะไร"
+
+# 2. Pull งานเพื่อนมา merge
+git pull --no-rebase origin main
+
+# 3. Push ขึ้น GitHub
+git push origin main
+กรณีที่อาจเจอ
+✅ ปกติ — Merge อัตโนมัติ (แก้คนละไฟล์)
+
+
+Merge made by the 'ort' strategy.
+ไม่ต้องทำอะไรเพิ่ม push ได้เลย
+
+⚠️ มี Conflict (แก้ไฟล์เดียวกัน บรรทัดเดียวกัน)
+
+
+CONFLICT (content): Merge conflict in pages/2_CitySmart_Planner.py
+Automatic merge failed; fix conflicts and then commit the result.
+Git จะใส่ marker ไว้ในไฟล์แบบนี้:
+
+
+<<<<<<< HEAD          ← งานของเรา
+travelers = st.slider(...)
+=======               ← งานเพื่อน
+travelers = st.number_input(...)
+>>>>>>> origin/main
+วิธีแก้ — เปิดไฟล์นั้น เลือกว่าจะเอาอันไหน หรือรวมกัน แล้ว:
+
+
+git add <ไฟล์ที่แก้ conflict>
+git commit -m "resolve merge conflict"
+git push origin main
+Tips
+สถานการณ์	คำสั่ง
+ดูว่าไฟล์ไหนเปลี่ยน	git status
+ดูว่าเพื่อน push อะไรมา	git fetch && git log origin/main --oneline -5
+ดู diff ก่อน commit	git diff
+เช็ค log รวม	git log --oneline --graph -10
+จำง่ายๆ: add → commit → pull → push เสมอ อย่า push ก่อน pull
+
