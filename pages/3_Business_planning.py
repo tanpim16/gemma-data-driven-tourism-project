@@ -74,7 +74,7 @@ gt_city_monthly["label"] = gt_city_monthly["Year_AD"].astype(str)+"-M"+gt_city_m
 gt_city_monthly = gt_city_monthly.sort_values(["Year_AD","month_num"])
 
 fig1 = make_subplots(specs=[[{"secondary_y":True}]])
-fig1.add_trace(go.Bar(x=mt_city_monthly["label"],y=mt_city_monthly["total_visitors"],name="นักท่องเที่ยว (Visitors)",marker_color="#0077B6",opacity=0.7),secondary_y=False)
+fig1.add_trace(go.Scatter(x=mt_city_monthly["label"],y=mt_city_monthly["total_visitors"],name="นักท่องเที่ยว (Visitors)",mode="lines+markers",line=dict(color="#0077B6",width=3),marker=dict(size=7,symbol="circle")),secondary_y=False)
 fig1.add_trace(go.Scatter(x=gt_city_monthly["label"],y=gt_city_monthly["Search_Interest"],name="Google Search Interest",mode="lines+markers",line=dict(color="#f97316",width=2.5),marker=dict(size=6)),secondary_y=True)
 fig1.update_layout(title=f"เมืองหลัก: {city_sel_major} – นักท่องเที่ยว vs Google Search (2023–2025)",height=420,template="plotly_white",legend=dict(orientation="h",y=1.1),margin=dict(t=60,b=50))
 fig1.update_yaxes(title_text="จำนวนนักท่องเที่ยว (Visitors)",secondary_y=False)
@@ -108,7 +108,7 @@ gt_sec_monthly["label"] = gt_sec_monthly["Year_AD"].astype(str)+"-M"+gt_sec_mont
 gt_sec_monthly = gt_sec_monthly.sort_values(["Year_AD","month_num"])
 
 fig2 = make_subplots(specs=[[{"secondary_y":True}]])
-fig2.add_trace(go.Bar(x=mt_sec_monthly["label"],y=mt_sec_monthly["total_visitors"],name="นักท่องเที่ยว (Visitors)",marker_color="#00b4d8",opacity=0.7),secondary_y=False)
+fig2.add_trace(go.Scatter(x=mt_sec_monthly["label"],y=mt_sec_monthly["total_visitors"],name="นักท่องเที่ยว (Visitors)",mode="lines+markers",line=dict(color="#00b4d8",width=3),marker=dict(size=7,symbol="circle")),secondary_y=False)
 fig2.add_trace(go.Scatter(x=gt_sec_monthly["label"],y=gt_sec_monthly["Search_Interest"],name="Google Search Interest",mode="lines+markers",line=dict(color="#ef4444",width=2.5),marker=dict(size=6)),secondary_y=True)
 fig2.update_layout(title=f"เมืองรอง: {city_sel_sec} – นักท่องเที่ยว vs Google Search (2023–2025)",height=420,template="plotly_white",legend=dict(orientation="h",y=1.1),margin=dict(t=60,b=50))
 fig2.update_yaxes(title_text="จำนวนนักท่องเที่ยว (Visitors)",secondary_y=False)
@@ -178,36 +178,53 @@ if not selected_provs:
 else:
     tr_sel = tr[tr["province_en"].isin(selected_provs)].copy()
     tr_sel["month"] = tr_sel["date"].dt.month
-    tr_sel["month_label"] = tr_sel["date"].dt.strftime("%Y-%m")
 
-    monthly_avg = tr_sel.groupby(["province_en","month","month_label"])["interest"].mean().reset_index()
-    monthly_avg = monthly_avg.sort_values(["province_en","month"])
+    MONTH_TH_LABEL = {1:"ม.ค.",2:"ก.พ.",3:"มี.ค.",4:"เม.ย.",5:"พ.ค.",6:"มิ.ย.",
+                      7:"ก.ค.",8:"ส.ค.",9:"ก.ย.",10:"ต.ค.",11:"พ.ย.",12:"ธ.ค."}
+
+    # รวมค่าเฉลี่ยรายเดือน แต่ละจังหวัด
+    monthly_avg = (
+        tr_sel.groupby(["province_en","month"])["interest"]
+        .mean().round(1).reset_index()
+        .sort_values(["province_en","month"])
+    )
+    monthly_avg["month_th"] = monthly_avg["month"].map(MONTH_TH_LABEL)
 
     fig3 = go.Figure()
     colors = px.colors.qualitative.Bold
     for i, prov in enumerate(selected_provs):
-        pdata = monthly_avg[monthly_avg["province_en"]==prov]
+        pdata = monthly_avg[monthly_avg["province_en"]==prov].sort_values("month")
         if pdata.empty:
             continue
         fig3.add_trace(go.Scatter(
-            x=pdata["month_label"], y=pdata["interest"],
-            name=prov, mode="lines+markers+text",
+            x=pdata["month_th"],
+            y=pdata["interest"],
+            name=prov,
+            mode="lines+markers+text",
             line=dict(color=colors[i % len(colors)], width=2.5),
-            marker=dict(size=8),
-            text=pdata["interest"].round(1),
-            textposition="top center", textfont=dict(size=10),
+            marker=dict(size=9, symbol="circle"),
+            text=pdata["interest"].astype(str),
+            textposition="top center",
+            textfont=dict(size=10),
+            hovertemplate=f"<b>{prov}</b><br>เดือน: %{{x}}<br>Search Interest: %{{y:.1f}}<extra></extra>",
         ))
 
+    # เรียงแกน X ตามลำดับเดือน
+    all_months_present = sorted(monthly_avg["month"].unique())
+    ordered_labels = [MONTH_TH_LABEL[m] for m in all_months_present]
+
     fig3.update_layout(
-        title="แนวโน้ม Google Search Interest รายเดือน ปี 2026 (Monthly Google Search Interest Trend 2026)",
-        xaxis_title="เดือน (Month)", yaxis_title="ค่าความสนใจ (Search Interest 0–100)",
-        height=480, template="plotly_white",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        margin=dict(t=70, b=50),
+        title="แนวโน้ม Google Search Interest รายเดือน ปี 2026 จำแนกตามจังหวัด<br><sup>(Monthly Google Search Interest by Province – 2026)</sup>",
+        xaxis=dict(title="เดือน (Month)", categoryorder="array", categoryarray=ordered_labels),
+        yaxis=dict(title="ค่าความสนใจ (Search Interest 0–100)", range=[0,105]),
+        height=500, template="plotly_white",
+        legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1),
+        margin=dict(t=80, b=60),
+        hovermode="x unified",
     )
     fig3.add_annotation(
-        text="⚠️ ข้อมูล ม.ค.–เม.ย. 2026 | คาดการณ์จาก Search Trend (Data: Jan–Apr 2026 | Forecast based on Search Trend)",
-        xref="paper", yref="paper", x=0, y=-0.12, showarrow=False,
+        text="⚠️ ข้อมูล ม.ค.–เม.ย. 2026 | แต่ละเส้น = 1 จังหวัด (Each line = 1 province)",
+        xref="paper", yref="paper", x=0, y=-0.13, showarrow=False,
         font=dict(size=11, color="#64748b"), align="left"
     )
     st.plotly_chart(fig3, use_container_width=True)
