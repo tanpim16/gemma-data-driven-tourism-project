@@ -17,7 +17,7 @@ Git Workflow สำหรับทำงานร่วมกัน 2 คน
 
 # 1. Commit งานตัวเองก่อน
 git add <ไฟล์ที่แก้>        # หรือ git add . เพื่อ add ทุกไฟล์
-git commit -m "อธิบายว่าแก้อะไร"
+git commit -m "update"
 
 # 2. Pull งานเพื่อนมา merge
 git pull --no-rebase origin main
