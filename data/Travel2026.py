@@ -10,23 +10,40 @@ import os
 import time
 import random
 import pathlib
+import tomllib  # สำหรับ Python 3.11 ขึ้นไป
 from datetime import datetime, timedelta
 from pytrends.request import TrendReq
 from pymongo import MongoClient
 
-# ── STEP 1 : Load .env file ──────────────────────────────────
-ENV_FILE = pathlib.Path("/workspaces/gemma-data-driven-tourism-project/.env")
-for _line in ENV_FILE.read_text().splitlines():
-    if _line.startswith("MONGO_URI="):
-        os.environ["MONGO_URI"] = _line[len("MONGO_URI="):]
-        break
-MONGO_URI = os.getenv("MONGO_URI")
+# ── STEP 1 : Load secrets.toml ──────────────────────────────
+BASE_DIR = pathlib.Path(__file__).resolve().parents[1]
+# หากไฟล์ secrets.toml อยู่ในโฟลเดอร์อื่น เช่น .streamlit ให้ปรับพาธตรงนี้
+SECRETS_FILE = BASE_DIR / "secrets.toml" 
+
+MONGO_URI = None
+
+# อ่านค่าจากไฟล์ secrets.toml (ถ้ามีไฟล์)
+if SECRETS_FILE.exists():
+    with open(SECRETS_FILE, "rb") as f:
+        secrets = tomllib.load(f)
+        MONGO_URI = secrets.get("MONGO_URI")
+
+# กรณีหาไม่เจอในไฟล์ ให้ลองหาจาก Environment Variable
+if not MONGO_URI:
+    MONGO_URI = os.getenv("MONGO_URI")
+
+if not MONGO_URI:
+    raise SystemExit(
+        "Missing MongoDB configuration. Create a secrets.toml file with:\n"
+        'MONGO_URI = "<your_mongo_connection_string>"\n'
+        "or set the environment variable MONGO_URI before running the script."
+    )
 
 # ── STEP 2 : Connect to MongoDB ──────────────────────────────
 print("🔌 Connecting to MongoDB...")
 client      = MongoClient(MONGO_URI)
 db          = client["thailand_trends_db"]
-collection  = db["travel_trends_monthly"] # แนะนำให้เปลี่ยนชื่อ collection ให้สอดคล้อง
+collection  = db["travel_trends_monthly"] 
 print("✅ Connected!\n")
 
 # ── STEP 3 : Setup Google Trends API ─────────────────────────
@@ -113,20 +130,13 @@ PROVINCES = [
     ("Narathiwat",         "นราธิวาส"),
 ]
 
-# ── STEP 5 : Dynamic Settings (คำนวณเดือนก่อนหน้า) ─────────
-# หาวันที่ 1 ของเดือนนี้
+# ── STEP 5 : Dynamic Settings ─────────
 today = datetime.now()
 first_day_this_month = today.replace(day=1)
-
-# ถอยไป 1 วัน จะได้วันสุดท้ายของเดือนที่แล้ว
 last_day_prev_month = first_day_this_month - timedelta(days=1)
-
-# หาวันที่ 1 ของเดือนที่แล้ว
 first_day_prev_month = last_day_prev_month.replace(day=1)
 
-# สร้าง String รูปแบบ "YYYY-MM-DD YYYY-MM-DD" สำหรับ pytrends
 TIMEFRAME = f"{first_day_prev_month.strftime('%Y-%m-%d')} {last_day_prev_month.strftime('%Y-%m-%d')}"
-
 GEO       = "TH"
 SLEEP_MIN = 5
 SLEEP_MAX = 10
@@ -166,7 +176,6 @@ print(f"📍 Region   : {GEO} (Thailand)")
 print(f"🏙️  Provinces: {len(PROVINCES)}")
 print("=" * 60)
 
-# เช็กเฉพาะข้อมูลที่มี TIMEFRAME ตรงกับที่กำลังดึง เพื่อให้ดึงของเดือนใหม่ได้
 existing = set()
 print("🔍 Checking existing data in MongoDB for this timeframe...")
 for doc in collection.find({"timeframe": TIMEFRAME}, {"keyword": 1, "_id": 0}):
