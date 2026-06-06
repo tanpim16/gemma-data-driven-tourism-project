@@ -1,7 +1,7 @@
 # =============================================================
 # Travel2026.py (Sustainable, Automated & Bulletproof Version)
 # Goal: Fetch Google Trends data for all 77 Thai provinces
-#       for the PREVIOUS MONTH and save it to MongoDB.
+#       for Jan-May 2026 and save it to MongoDB (travel_trends_2026).
 # =============================================================
 
 import os
@@ -10,7 +10,7 @@ import random
 import pathlib
 import tomllib
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pytrends.request import TrendReq
 from pymongo import MongoClient
 
@@ -22,23 +22,14 @@ logging.basicConfig(
 )
 
 # ── STEP 2 : Bulletproof Config Loader ───────────────────────
-# หาที่อยู่โฟลเดอร์แบบไดนามิก ป้องกันการพังเมื่อย้ายไฟล์
-BASE_DIR = pathlib.Path(__file__).resolve().parents[1]
-SECRETS_FILE = BASE_DIR / ".streamlit" / "secrets.toml"
-
-# พยายามดึงจาก Environment Variable ก่อนเป็นอันดับแรก
+SECRETS_FILE = pathlib.Path("/workspaces/gemma-data-driven-tourism-project/.streamlit/secrets.toml")
 MONGO_URI = os.getenv("MONGO_URI") 
 
-# ถ้าไม่มีใน Env ให้ค้นหาในไฟล์ secrets.toml
 if not MONGO_URI and SECRETS_FILE.exists():
     with open(SECRETS_FILE, "rb") as f:
         try:
             secrets = tomllib.load(f)
-            
-            # ค้นหาในระดับหลัก (Root level)
             MONGO_URI = secrets.get("MONGO_URI")
-            
-            # ถ้ายังไม่เจอ ให้ควานหาในทุกๆ หมวดหมู่
             if not MONGO_URI:
                 for section_name, section_content in secrets.items():
                     if isinstance(section_content, dict) and "MONGO_URI" in section_content:
@@ -48,20 +39,21 @@ if not MONGO_URI and SECRETS_FILE.exists():
         except Exception as e:
             raise SystemExit(f"❌ โครงสร้างไฟล์ secrets.toml ผิดพลาดจนอ่านไม่ได้: {e}")
 
-# ถ้าหาไม่เจอจริงๆ ให้หยุดการทำงานและแจ้งวิธีแก้ไข
 if not MONGO_URI:
     raise SystemExit(
         f"❌ FATAL ERROR: ไม่พบ MONGO_URI ทั้งใน Environment Variable และในไฟล์\n"
         f"ระบบพยายามค้นหาไฟล์จาก: {SECRETS_FILE}\n"
-        "วิธีแก้ที่ชัวร์ที่สุด: พิมพ์คำสั่งนี้ใน Terminal ก่อนรันสคริปต์\n"
-        'export MONGO_URI="mongodb+srv://Gemma5001:Dads9-5001@cluster0.sdorsj2.mongodb.net/?appName=Cluster0"'
     )
 
 # ── STEP 3 : Connect to MongoDB ──────────────────────────────
 logging.info("🔌 Connecting to MongoDB...")
 client      = MongoClient(MONGO_URI)
 db          = client["thailand_trends_db"]
-collection  = db["travel_trends_monthly"] 
+collection  = db["travel_trends_2026"] 
+
+# ⚠️ ล้างข้อมูลเก่าทิ้งทั้งหมดเพื่อป้องกันปัญหา DuplicateKeyError จากข้อมูลที่ซ้อนทับกัน
+logging.info("🧹 Dropping old collection to prevent index build failures...")
+collection.drop()
 
 # สร้าง Index ป้องกันข้อมูลซ้ำ (ใช้ unique=True)
 collection.create_index([("keyword", 1), ("timeframe", 1)], unique=True)
@@ -114,12 +106,8 @@ PROVINCES = [
 ]
 
 # ── STEP 6 : Dynamic Settings ─────────
-today = datetime.now()
-first_day_this_month = today.replace(day=1)
-last_day_prev_month = first_day_this_month - timedelta(days=1)
-first_day_prev_month = last_day_prev_month.replace(day=1)
-
-TIMEFRAME = f"{first_day_prev_month.strftime('%Y-%m-%d')} {last_day_prev_month.strftime('%Y-%m-%d')}"
+# บังคับดึงข้อมูลตั้งแต่วันที่ 1 ม.ค. 2026 ถึง 31 พ.ค. 2026
+TIMEFRAME = "2026-01-01 2026-05-31"
 GEO       = "TH"
 SLEEP_MIN = 5
 SLEEP_MAX = 10
@@ -154,7 +142,7 @@ def fetch_trends(keyword, geo=GEO, timeframe=TIMEFRAME):
 
 # ── STEP 8 : Main loop ────────────────────────────────────────
 logging.info("=" * 60)
-logging.info(f"📅 Timeframe: {TIMEFRAME} (Previous Month)")
+logging.info(f"📅 Timeframe: {TIMEFRAME}")
 logging.info(f"📍 Region   : {GEO} (Thailand)")
 logging.info(f"🏙️  Provinces: {len(PROVINCES)}")
 logging.info("=" * 60)
