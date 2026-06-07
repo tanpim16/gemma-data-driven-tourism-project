@@ -226,10 +226,10 @@ with col_ct:
         hovertemplate='<b>%{label}</b><br>%{value} ทริป (%{percent})<extra></extra>',
     )
     fig_ct.update_layout(
-        height=280, margin=dict(l=0, r=0, t=5, b=0),
+        height=300, margin=dict(l=0, r=0, t=5, b=45),
         paper_bgcolor='rgba(0,0,0,0)',
         showlegend=True,
-        legend=dict(orientation='h', yanchor='bottom', y=-0.15, xanchor='center', x=0.5, font=dict(size=11)),
+        legend=dict(orientation='h', yanchor='top', y=-0.08, xanchor='center', x=0.5, font=dict(size=11)),
         font=dict(family='Prompt'),
         annotations=[dict(
             text=f"<b>{major_pct}%</b><br><span style='font-size:10px'>หลัก</span>",
@@ -252,10 +252,10 @@ with col_bud:
         hovertemplate='<b>%{label}</b><br>%{value} ทริป (%{percent})<extra></extra>',
     )
     fig_budget.update_layout(
-        height=280, margin=dict(l=0, r=0, t=5, b=0),
+        height=300, margin=dict(l=0, r=0, t=5, b=45),
         paper_bgcolor='rgba(0,0,0,0)',
         showlegend=True,
-        legend=dict(orientation='h', yanchor='bottom', y=-0.15, xanchor='center', x=0.5, font=dict(size=11)),
+        legend=dict(orientation='h', yanchor='top', y=-0.08, xanchor='center', x=0.5, font=dict(size=11)),
         font=dict(family='Prompt'),
     )
     st.plotly_chart(fig_budget, use_container_width=True)

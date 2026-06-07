@@ -186,7 +186,6 @@ html, body, [class*="css"] {
 .step-arrow {
     position: absolute;
     right: -10px; top: 50%;
-    transform: translateY(-50%);
     width: 20px; height: 20px;
     background: #fff;
     border-top: 1px solid #e5e7eb;
