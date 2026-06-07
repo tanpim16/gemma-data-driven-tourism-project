@@ -734,15 +734,21 @@ with tab_province:
                 tnfest = yd[~yd['Has_Festival']]['total_revenue'].sum()
                 pct_change = ((tfest - tnfest) / tnfest * 100) if tnfest > 0 else 0
 
-                st.markdown(f"<div style='background:{_pastel[i % len(_pastel)]}; border-radius:12px; padding: 1rem; text-align:center; border:1px solid #eaeaea; box-shadow:2px 4px 10px rgba(0,0,0,0.05); height:100%;'>", unsafe_allow_html=True)
-                st.markdown(f"<h4 style='margin-top:0;text-align:center;'>📅 ปี {int(year)}</h4>", unsafe_allow_html=True)
-                st.metric(
-                    label="รายได้เดือนมีเทศกาล",
-                    value=f"{tfest/1_000_000:,.2f} ล้านล้านบาท",
-                    delta=f"{pct_change:,.1f}% เทียบกับเดือนไม่มีเทศกาล"
+                _is_up      = pct_change >= 0
+                _delta_col  = '#1a8754' if _is_up else '#c0392b'
+                _delta_arrow = '↑' if _is_up else '↓'
+                st.markdown(
+                    f"""
+                    <div style='background:{_pastel[i % len(_pastel)]}; border-radius:12px; padding:1.2rem 1rem; text-align:center; border:1px solid #eaeaea; box-shadow:2px 4px 10px rgba(0,0,0,0.05); height:100%; box-sizing:border-box;'>
+                        <h4 style='margin:0 0 0.75rem 0; text-align:center;'>📅 ปี {int(year)}</h4>
+                        <div style='font-size:0.85rem; color:#5f6368; margin-bottom:0.15rem;'>รายได้เดือนมีเทศกาล</div>
+                        <div style='font-size:1.7rem; font-weight:700; color:#202124; line-height:1.2;'>{tfest/1_000_000:,.2f} <span style='font-size:1rem; font-weight:400;'>ล้านล้านบาท</span></div>
+                        <div style='font-size:0.85rem; color:{_delta_col}; margin-top:0.25rem;'>{_delta_arrow} {pct_change:,.1f}% เทียบกับเดือนไม่มีเทศกาล</div>
+                        <div style='font-size:0.85rem; color:#5f6368; margin-top:0.6rem;'><b>เดือนไม่มีเทศกาล:</b> {tnfest/1_000_000:,.2f} ล้านล้านบาท</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
                 )
-                st.markdown(f"**เดือนไม่มีเทศกาล:** {tnfest/1_000_000:,.2f} ล้านล้านบาท")
-                st.markdown("</div>", unsafe_allow_html=True)
 
     st.divider()
 

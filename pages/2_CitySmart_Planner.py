@@ -1778,9 +1778,20 @@ if persona_mode == 'entrepreneur':
             st.success("✅ สร้างกลยุทธ์เรียบร้อย!")
 
     if st.session_state.biz_res:
-        st.markdown('<div class="result-card">', unsafe_allow_html=True)
-        st.markdown(st.session_state.biz_res)
-        st.markdown('</div>', unsafe_allow_html=True)
+        _biz_lines = []
+        for _ln in st.session_state.biz_res.split('\n'):
+            _s = _ln.strip()
+            if not _s:
+                _biz_lines.append('<div style="height:0.35rem"></div>')
+            elif _s.startswith('## '):
+                _biz_lines.append(f'<p style="font-weight:700;font-size:1rem;color:#0077B6;margin:0.7rem 0 0.2rem;">{_md_inline(_s[3:])}</p>')
+            elif _s.startswith('# '):
+                _biz_lines.append(f'<p style="font-weight:800;font-size:1.05rem;color:#1a1a2e;margin:0.5rem 0 0.2rem;">{_md_inline(_s[2:])}</p>')
+            elif _s.startswith('- '):
+                _biz_lines.append(f'<p style="margin:0.15rem 0 0.15rem 0.8rem;font-size:0.9rem;color:#2a2a3e;">• {_md_inline(_s[2:])}</p>')
+            else:
+                _biz_lines.append(f'<p style="font-size:0.9rem;color:#444;margin:0.1rem 0;">{_md_inline(_s)}</p>')
+        st.html(f'<div class="result-card">{"".join(_biz_lines)}</div>')
 
     st.stop()
 
@@ -1877,9 +1888,20 @@ if persona_mode == 'government':
             st.success("✅ สร้างรายงานนโยบายเรียบร้อย!")
 
     if st.session_state.gov_res:
-        st.markdown('<div class="result-card">', unsafe_allow_html=True)
-        st.markdown(st.session_state.gov_res)
-        st.markdown('</div>', unsafe_allow_html=True)
+        _gov_lines = []
+        for _ln in st.session_state.gov_res.split('\n'):
+            _s = _ln.strip()
+            if not _s:
+                _gov_lines.append('<div style="height:0.35rem"></div>')
+            elif _s.startswith('## '):
+                _gov_lines.append(f'<p style="font-weight:700;font-size:1rem;color:#0077B6;margin:0.7rem 0 0.2rem;">{_md_inline(_s[3:])}</p>')
+            elif _s.startswith('# '):
+                _gov_lines.append(f'<p style="font-weight:800;font-size:1.05rem;color:#1a1a2e;margin:0.5rem 0 0.2rem;">{_md_inline(_s[2:])}</p>')
+            elif _s.startswith('- '):
+                _gov_lines.append(f'<p style="margin:0.15rem 0 0.15rem 0.8rem;font-size:0.9rem;color:#2a2a3e;">• {_md_inline(_s[2:])}</p>')
+            else:
+                _gov_lines.append(f'<p style="font-size:0.9rem;color:#444;margin:0.1rem 0;">{_md_inline(_s)}</p>')
+        st.html(f'<div class="result-card">{"".join(_gov_lines)}</div>')
 
     st.stop()
 
@@ -1993,23 +2015,29 @@ if generate_clicked and not st.session_state.ai_mode:
     _avg_vis   = df_tour[df_tour['ProvinceEN'] == province]['total_visitors'].mean()
     _festivals = df_fest_events[df_fest_events['Province_ID'] == province]['Festival_Name_TH'].dropna().tolist()
     _fest_str  = ', '.join(_festivals[:5]) if _festivals else 'ไม่มีข้อมูล'
-    st.markdown('<div class="result-card">', unsafe_allow_html=True)
-    st.markdown(f"""
-## 📊 ข้อมูล Non-AI: {_prov_th}
-> ข้อมูลจากฐานข้อมูลกระทรวงการท่องเที่ยวฯ 2566–2568 · ไม่ใช้ AI
-
-| รายการ | ค่า |
-|---|---|
-| ประเภทเมือง | {_city_type} |
-| ภูมิภาค | {_region} |
-| รายได้เฉลี่ย/เดือน | {_avg_rev:,.1f} ล้านบาท |
-| นักท่องเที่ยวเฉลี่ย/เดือน | {_avg_vis:,.0f} คน |
-| ค่าใช้จ่ายเฉลี่ย/คน | {f'{_spend_avg:,} บาท' if _spend_avg else 'ไม่มีข้อมูล'} |
-| เทศกาลสำคัญ | {_fest_str} |
-
-💡 **เปิดโหมด AI** (แถบด้านซ้าย) เพื่อรับแผนเดินทางที่ AI สร้างให้อย่างละเอียด
-""")
-    st.markdown('</div>', unsafe_allow_html=True)
+    _nonai_rows = ''.join([
+        f'<tr><td style="padding:0.35rem 0.7rem;color:#555;font-size:0.88rem;">{k}</td>'
+        f'<td style="padding:0.35rem 0.7rem;font-weight:600;font-size:0.88rem;">{v}</td></tr>'
+        for k, v in [
+            ('ประเภทเมือง', _city_type), ('ภูมิภาค', _region),
+            ('รายได้เฉลี่ย/เดือน', f'{_avg_rev:,.1f} ล้านบาท'),
+            ('นักท่องเที่ยวเฉลี่ย/เดือน', f'{_avg_vis:,.0f} คน'),
+            ('ค่าใช้จ่ายเฉลี่ย/คน', f'{_spend_avg:,} บาท' if _spend_avg else 'ไม่มีข้อมูล'),
+            ('เทศกาลสำคัญ', _fest_str),
+        ]
+    ])
+    st.html(
+        f'<div class="result-card">'
+        f'<p style="font-weight:700;font-size:1rem;color:#0077B6;margin:0 0 0.6rem;">📊 ข้อมูล Non-AI: {_prov_th}</p>'
+        f'<p style="font-size:0.8rem;color:#888;margin:0 0 0.6rem;">ข้อมูลจากฐานข้อมูลกระทรวงการท่องเที่ยวฯ 2566–2568 · ไม่ใช้ AI</p>'
+        f'<table style="width:100%;border-collapse:collapse;border:1px solid rgba(0,119,182,0.1);border-radius:10px;overflow:hidden;">'
+        f'<thead><tr style="background:rgba(0,119,182,0.07);">'
+        f'<th style="padding:0.4rem 0.7rem;text-align:left;font-size:0.82rem;color:#0077B6;">รายการ</th>'
+        f'<th style="padding:0.4rem 0.7rem;text-align:left;font-size:0.82rem;color:#0077B6;">ค่า</th>'
+        f'</tr></thead><tbody>{_nonai_rows}</tbody></table>'
+        f'<p style="font-size:0.85rem;color:#555;margin:0.75rem 0 0;">💡 <strong>เปิดโหมด AI</strong> (แถบด้านซ้าย) เพื่อรับแผนเดินทางที่ AI สร้างให้อย่างละเอียด</p>'
+        f'</div>'
+    )
 
 elif generate_clicked:
     city_info = df_tour[df_tour['ProvinceEN'] == province].iloc[0]

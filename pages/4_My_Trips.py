@@ -68,6 +68,18 @@ def map_city_type_th(city_type_en):
     if city_type_en == 'Secondary City': return 'เมืองรอง'
     return 'ไม่ทราบ'
 
+@st.cache_data
+def _load_province_city_type_map():
+    """Build ProvinceThai → city_type_th lookup from master CSV."""
+    try:
+        _csv = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'master_tourism_analysis.csv')
+        _df = pd.read_csv(_csv, usecols=['ProvinceThai', 'City_type_EN']).drop_duplicates(subset=['ProvinceThai'])
+        return dict(zip(_df['ProvinceThai'], _df['City_type_EN'].map({'Major City': 'เมืองหลัก', 'Secondary City': 'เมืองรอง'}).fillna('ไม่ทราบ')))
+    except Exception:
+        return {}
+
+_province_type_map = _load_province_city_type_map()
+
 # ── Header ────────────────────────────────────────────────────────────────────
 col_hd, col_refresh = st.columns([5, 1])
 with col_hd:
@@ -109,10 +121,10 @@ df['created_at']  = pd.to_datetime(df['created_at'])
 df['month']       = df['created_at'].dt.to_period('M').astype(str)
 df['num_days']    = pd.to_numeric(df['num_days'],   errors='coerce')
 df['travelers']   = pd.to_numeric(df['travelers'],  errors='coerce')
-# สมมติว่าคอลัมน์จาก DB ชื่อ 'city_type' และมีค่าเป็น 'Major City' หรือ 'Secondary City'
 if 'city_type' in df.columns:
     df['city_type_th'] = df['city_type'].apply(map_city_type_th)
-else: df['city_type_th'] = 'ไม่ทราบ'
+else:
+    df['city_type_th'] = df['province'].map(_province_type_map).fillna('ไม่ทราบ')
 
 has_budget = 'estimated_budget_thb' in df.columns and df['estimated_budget_thb'].notna().any()
 
