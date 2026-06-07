@@ -10,6 +10,7 @@ python -m streamlit run app.py
 
 python -m pip install "pymongo[srv]==3.12"
 
+<<<<<<< HEAD
 ---------------------------------------------------------
 
 Git Workflow สำหรับทำงานร่วมกัน 2 คน
@@ -58,3 +59,6 @@ Tips
 เช็ค log รวม	git log --oneline --graph -10
 จำง่ายๆ: add → commit → pull → push เสมอ อย่า push ก่อน pull
 
+=======
+git config --global user.email "your-id+ksomruedee@users.noreply.github.com"
+>>>>>>> 693e9dad3038f63fbbf8ecc6c18747467a9a7048
