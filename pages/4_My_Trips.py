@@ -77,8 +77,16 @@ with col_refresh:
 # ── Load ──────────────────────────────────────────────────────────────────────
 try:
     df = get_all_trips()
-except Exception as e:
-    st.error(f"⚠️ ไม่สามารถเชื่อมต่อฐานข้อมูล Trips ได้: {e}")
+except Exception as e: # Catch broad exceptions first
+    # Check for specific secret missing error
+    err_str = str(e)
+    if isinstance(e, (KeyError, st.errors.SecretsMissingError)) and 'mysql' in err_str.lower():
+        st.error(
+            "⚠️ ไม่พบข้อมูลเชื่อมต่อ MySQL. กรุณาเพิ่มลงในไฟล์ "
+            "[.streamlit/secrets.toml](/?file=/workspaces/gemma-data-driven-tourism-project/.streamlit/secrets.toml) ของคุณภายใต้ `[mysql]`"
+        )
+    else:
+        st.error(f"⚠️ ไม่สามารถเชื่อมต่อฐานข้อมูล Trips ได้: {err_str}")
     df = pd.DataFrame() # สร้าง DataFrame ว่างเพื่อป้องกันข้อผิดพลาด
 
 if st.session_state.get('_mysql_err'):

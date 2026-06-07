@@ -1606,7 +1606,10 @@ with st.sidebar:
     if st.session_state.ai_mode and _ai_ready:
         st.success("AI เปิดอยู่ · Gemini พร้อมใช้งาน")
     elif st.session_state.ai_mode and not _ai_ready:
-        st.error("ไม่พบ API Key · AI ไม่พร้อมใช้งาน")
+        st.error(
+            "ไม่พบ API Key · AI ไม่พร้อมใช้งาน\n\n"
+            "กรุณาเพิ่ม Key ใน [.streamlit/secrets.toml](/?file=/workspaces/gemma-data-driven-tourism-project/.streamlit/secrets.toml)"
+        )
     else:
         st.info("Non-AI Mode · แสดงข้อมูลจาก Database")
 
@@ -2188,7 +2191,17 @@ Use this exact structure:
             )
             get_all_trips.clear()
         except Exception as _e:
-            st.session_state['_mysql_err'] = str(_e)
+            err_str = str(_e)
+            st.session_state['_mysql_err'] = err_str
+            # Show an immediate, non-blocking warning to the user on the current page.
+            if isinstance(_e, (KeyError, st.errors.SecretsMissingError)) and 'mysql' in err_str.lower():
+                st.warning(
+                    "⚠️ ไม่สามารถบันทึกทริปได้: ไม่พบข้อมูลเชื่อมต่อ MySQL ใน "
+                    "[.streamlit/secrets.toml](/?file=/workspaces/gemma-data-driven-tourism-project/.streamlit/secrets.toml)",
+                    icon="💾"
+                )
+            else:
+                st.warning(f"⚠️ ไม่สามารถบันทึกทริปได้: {err_str}", icon="💾")
 
 # ─── Combined Map + Weather ───────────────────────────────────────────────────
 if st.session_state.generated:
