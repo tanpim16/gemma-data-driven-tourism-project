@@ -12,6 +12,13 @@ import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils.snowflake_connector import query_snowflake
 from utils.mysql_connector import save_trip, get_all_trips
+
+# Compatibility for older Streamlit versions that may not have SecretsMissingError
+try:
+    from streamlit.errors import SecretsMissingError
+except ImportError:
+    class SecretsMissingError(Exception):
+        pass
 import os
 import urllib.request
 
@@ -441,7 +448,7 @@ def create_pdf(content_dict, province, lang='TH'):
     buf = io.BytesIO()
     pdf.output(buf)
     buf.seek(0)
-    return buf
+    return buff
 
 # ─── AI Setup ─────────────────────────────────────────────────────────────────
 _ai_ready = False
@@ -2194,7 +2201,7 @@ Use this exact structure:
             err_str = str(_e)
             st.session_state['_mysql_err'] = err_str
             # Show an immediate, non-blocking warning to the user on the current page.
-            if isinstance(_e, (KeyError, st.errors.SecretsMissingError)) and 'mysql' in err_str.lower():
+            if isinstance(_e, (KeyError, SecretsMissingError)) and 'mysql' in err_str.lower():
                 st.warning(
                     "⚠️ ไม่สามารถบันทึกทริปได้: ไม่พบข้อมูลเชื่อมต่อ MySQL ใน "
                     "[.streamlit/secrets.toml](/?file=/workspaces/gemma-data-driven-tourism-project/.streamlit/secrets.toml)",

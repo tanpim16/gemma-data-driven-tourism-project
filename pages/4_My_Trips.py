@@ -6,6 +6,13 @@ import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils.mysql_connector import get_all_trips
 
+# Compatibility for older Streamlit versions that may not have SecretsMissingError
+try:
+    from streamlit.errors import SecretsMissingError
+except ImportError:
+    class SecretsMissingError(Exception):
+        pass
+
 st.set_page_config(page_title="Trip Insights", page_icon="📊", layout="wide")
 
 st.markdown("""
@@ -80,7 +87,7 @@ try:
 except Exception as e: # Catch broad exceptions first
     # Check for specific secret missing error
     err_str = str(e)
-    if isinstance(e, (KeyError, st.errors.SecretsMissingError)) and 'mysql' in err_str.lower():
+    if isinstance(e, (KeyError, SecretsMissingError)) and 'mysql' in err_str.lower():
         st.error(
             "⚠️ ไม่พบข้อมูลเชื่อมต่อ MySQL. กรุณาเพิ่มลงในไฟล์ "
             "[.streamlit/secrets.toml](/?file=/workspaces/gemma-data-driven-tourism-project/.streamlit/secrets.toml) ของคุณภายใต้ `[mysql]`"
