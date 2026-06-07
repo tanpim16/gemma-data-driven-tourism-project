@@ -239,7 +239,7 @@ if selected_prov:
             "[.streamlit/secrets.toml](/?file=/workspaces/gemma-data-driven-tourism-project/.streamlit/secrets.toml) ของคุณภายใต้ `[gemini]`"
         )
     else:
-        st.success(f"✅ พร้อมใช้งาน AI (ตรวจพบ Key ที่ลงท้ายด้วย ...{gemini_key[-4:]})")
+        st.success(f"✅ พร้อมใช้งาน AI ")
 
     # 3. การทำงานเมื่อกดปุ่ม
     if st.button("🚀 รัน AI Agent (Gemini) เพื่อพยากรณ์ใหม่", type="primary"):
