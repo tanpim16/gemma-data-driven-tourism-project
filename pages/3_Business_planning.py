@@ -247,7 +247,7 @@ if selected_prov:
                     # เชื่อมต่อกับระบบ Gemini
                     genai.configure(api_key=gemini_key)
                     model = genai.GenerativeModel(
-                        model_name="gemini-2.5-flash", # <--- อัปเดตเป็น Gemini 2.5 Flash
+                        model_name="gemini-1.5-flash",
                         system_instruction="You are an expert Data Scientist. Analyze seasonal patterns. Return ONLY a JSON object where keys are province names and values are lists of 12 integers for 2026."
                     )
 
