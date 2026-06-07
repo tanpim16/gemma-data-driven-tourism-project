@@ -101,3 +101,5 @@ plotly
 snowflake-connector-python
 mysql-connector-python
 openpyxl
+streamlit
+pymongo
