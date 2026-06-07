@@ -503,7 +503,6 @@ with tab_province:
     with col_f1:
         selected_province_th = st.selectbox("🔍 คุณกำลังสนใจจังหวัดไหน?", prov_thai_sorted)
         selected_province    = prov_map[selected_province_th]
-        st.session_state['selected_province'] = selected_province
     with col_f2:
         year_opts     = ['ทุกปี'] + sorted(df_tour['Year'].unique().tolist(), reverse=True)
         selected_year = st.selectbox("📅 ปี", year_opts)
@@ -932,9 +931,10 @@ with tab_festival:
     st.plotly_chart(fig_heat, use_container_width=True)
 
     # Top cell insight
-    flat = heat_df.loc[heat_df['count'].idxmax()]
-    st.info(f"📈 **Hotspot สูงสุด:** {flat['Region']} × {flat['Category']} "
-            f"มีเทศกาลถึง **{flat['count']} รายการ**")
+    if not heat_df.empty:
+        flat = heat_df.loc[heat_df['count'].idxmax()]
+        st.info(f"📈 **Hotspot สูงสุด:** {flat['Region']} × {flat['Category']} "
+                f"มีเทศกาลถึง **{flat['count']} รายการ**")
 
     # ── Treemap ───────────────────────────────────────────────────────────────
     st.markdown("#### 🌳 สัดส่วนหมวดหมู่เทศกาลทั่วประเทศ")

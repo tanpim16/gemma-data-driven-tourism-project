@@ -301,6 +301,18 @@ div[data-testid="stMap"] > div {
     border-left: 4px solid #dc3545 !important;
     border-radius: 10px !important;
 }
+
+/* ── Result card (biz / gov / non-AI mode) ── */
+.result-card {
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0,119,182,0.12);
+    border-radius: 18px;
+    padding: 1.2rem 1.5rem;
+    box-shadow: 0 4px 20px rgba(0,119,182,0.07);
+    margin-top: 0.5rem;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -1882,15 +1894,6 @@ with c1:
     province_df = province_df.sort_values(by='ProvinceTH')
     province_options = province_df['ProvinceEN'].tolist()
 
-    def format_province(p_en):
-        if st.session_state.lang == 'EN':
-            return str(p_en)
-        row = df_tour[df_tour['ProvinceEN'] == p_en]
-        if not row.empty:
-            val = row['ProvinceTH'].iloc[0]
-            return str(val) if pd.notna(val) else p_en
-        return str(p_en)
-
     province = st.selectbox(f"📍 {t['dest']}", options=province_options, format_func=format_province)
     t_date = st.date_input(f"📅 {t['date_label']}", datetime.now())
 
@@ -2563,12 +2566,37 @@ End with:
                     pass
 
         if st.session_state.loop_res:
+            _loop_lines = []
+            for _ln in st.session_state.loop_res.split('\n'):
+                _s = _ln.strip()
+                if not _s:
+                    _loop_lines.append('<div style="height:0.4rem"></div>')
+                elif _s.startswith('## '):
+                    _loop_lines.append(
+                        f'<p style="font-weight:700;font-size:1rem;color:#0077B6;'
+                        f'margin:0.7rem 0 0.2rem;">{_md_inline(_s[3:])}</p>'
+                    )
+                elif _s.startswith('# '):
+                    _loop_lines.append(
+                        f'<p style="font-weight:800;font-size:1.05rem;color:#1a1a2e;'
+                        f'margin:0.5rem 0 0.2rem;">{_md_inline(_s[2:])}</p>'
+                    )
+                elif _s.startswith('- '):
+                    _loop_lines.append(
+                        f'<p style="margin:0.15rem 0 0.15rem 0.8rem;font-size:0.9rem;'
+                        f'color:#2a2a3e;">• {_md_inline(_s[2:])}</p>'
+                    )
+                else:
+                    _loop_lines.append(
+                        f'<p style="font-size:0.9rem;color:#444;margin:0.1rem 0;">'
+                        f'{_md_inline(_s)}</p>'
+                    )
             st.markdown(
-                '<div style="background:white;border-radius:16px;padding:1.2rem 1.5rem;'
-                'box-shadow:0 2px 14px rgba(0,0,0,0.07);border-top:4px solid #0077B6;">',
+                f'<div style="background:white;border-radius:16px;padding:1.2rem 1.5rem;'
+                f'box-shadow:0 2px 14px rgba(0,0,0,0.07);border-top:4px solid #0077B6;">'
+                f'{"".join(_loop_lines)}'
+                f'</div>',
                 unsafe_allow_html=True
             )
-            st.markdown(st.session_state.loop_res)
-            st.markdown('</div>', unsafe_allow_html=True)
 
         
