@@ -2171,7 +2171,7 @@ Use this exact structure:
 """
             raw_gem = call_ai_strict(
                 gem_prompt,
-                mode="general",
+                mode="itinerary",
                 fallback_text=gem_fallback
             )
 
@@ -2200,7 +2200,6 @@ Use this exact structure:
                 num_days  = days,
                 travelers = travelers,
                 budget    = budget_level,
-                city_type = _city_type_en,
                 itinerary = _itinerary_log,
             )
             get_all_trips.clear()
