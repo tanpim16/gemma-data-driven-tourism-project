@@ -20,6 +20,7 @@ pytrends
 
 # PDF Generation
 fpdf2
+openpyxl
 
 # Scheduling
 schedule

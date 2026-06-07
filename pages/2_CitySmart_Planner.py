@@ -449,7 +449,7 @@ gemma_model = None
 try:
     # Use the same secret structure as other pages ([gemini] section) for consistency.
     genai.configure(api_key=st.secrets["gemini"]["GEMINI_API_KEY"])
-    gemma_model = genai.GenerativeModel('gemma-4-31b-it')
+    gemma_model = genai.GenerativeModel('gemini-1.5-flash')
     _ai_ready = True
 except Exception:
     # If key is not found or any other error occurs, _ai_ready remains False
