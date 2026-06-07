@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # =============================================================
 # Travel_Monthly.py
 # Goal: Fetch Google Trends data for all 77 Thai provinces

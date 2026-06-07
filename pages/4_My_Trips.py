@@ -56,22 +56,9 @@ html, body, [class*="css"] { font-family: 'Prompt', sans-serif !important; }
 """, unsafe_allow_html=True)
 
 # ── City type lookup จาก master CSV ──────────────────────────────────────────
-@st.cache_data(ttl=3600)
-def load_city_type_map():
-    _master = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'master_tourism_analysis.csv')
-    df_m = pd.read_csv(_master, usecols=['ProvinceThai', 'ProvinceEN', 'City_type_EN']).drop_duplicates()
-    th_map = dict(zip(df_m['ProvinceThai'], df_m['City_type_EN']))
-    en_map = dict(zip(df_m['ProvinceEN'],   df_m['City_type_EN']))
-    return th_map, en_map
-
-th_map, en_map = load_city_type_map()
-
-def get_city_type_th(province_str):
-    ct = th_map.get(str(province_str)) or en_map.get(str(province_str))
-    if ct == 'Major City':
-        return 'เมืองหลัก'
-    if ct == 'Secondary City':
-        return 'เมืองรอง'
+def map_city_type_th(city_type_en):
+    if city_type_en == 'Major City': return 'เมืองหลัก'
+    if city_type_en == 'Secondary City': return 'เมืองรอง'
     return 'ไม่ทราบ'
 
 # ── Header ────────────────────────────────────────────────────────────────────
@@ -102,7 +89,10 @@ df['created_at']  = pd.to_datetime(df['created_at'])
 df['month']       = df['created_at'].dt.to_period('M').astype(str)
 df['num_days']    = pd.to_numeric(df['num_days'],   errors='coerce')
 df['travelers']   = pd.to_numeric(df['travelers'],  errors='coerce')
-df['city_type']   = df['province'].apply(get_city_type_th)
+# สมมติว่าคอลัมน์จาก DB ชื่อ 'city_type' และมีค่าเป็น 'Major City' หรือ 'Secondary City'
+if 'city_type' in df.columns:
+    df['city_type_th'] = df['city_type'].apply(map_city_type_th)
+else: df['city_type_th'] = 'ไม่ทราบ'
 
 has_budget = 'estimated_budget_thb' in df.columns and df['estimated_budget_thb'].notna().any()
 
@@ -114,8 +104,8 @@ total_travelers = int(df['travelers'].sum())
 avg_budget      = int(df['estimated_budget_thb'].dropna().mean()) if has_budget else None
 top_province    = df['province'].value_counts().index[0]
 
-major_pct = round((df['city_type'] == 'เมืองหลัก').mean() * 100)
-sec_pct   = round((df['city_type'] == 'เมืองรอง').mean() * 100)
+major_pct = round((df['city_type_th'] == 'เมืองหลัก').mean() * 100)
+sec_pct   = round((df['city_type_th'] == 'เมืองรอง').mean() * 100)
 
 k1, k2, k3, k4, k5, k6 = st.columns(6)
 kpi_data = [
@@ -138,7 +128,7 @@ for col, val, label, sub, accent in kpi_data:
 st.markdown("<div style='height:0.8rem'></div>", unsafe_allow_html=True)
 
 # ── Insight summary ───────────────────────────────────────────────────────────
-_top_ct   = df[df['province'] == top_province]['city_type'].iloc[0]
+_top_ct   = df[df['province'] == top_province]['city_type_th'].iloc[0]
 _ct_badge = f'<span class="badge-major">🏙️ เมืองหลัก</span>' if _top_ct == 'เมืองหลัก' else f'<span class="badge-secondary">🌿 เมืองรอง</span>'
 _top_days = df[df['province'] == top_province]['num_days'].mean()
 _budget_insight = f"งบ AI estimate เฉลี่ยต่อทริปอยู่ที่ <b>฿{avg_budget:,}</b>" if avg_budget else ""
@@ -158,7 +148,7 @@ col_prov, col_ct, col_bud = st.columns([2.2, 1, 1], gap="large")
 with col_prov:
     st.markdown('<div class="section-label">DESTINATION</div><div class="section-title">🏆 จังหวัดยอดนิยม Top 10</div>', unsafe_allow_html=True)
     top_prov = (
-        df.groupby(['province', 'city_type'])
+        df.groupby(['province', 'city_type_th'])
         .agg(trips=('id', 'count'), avg_days=('num_days', 'mean'), travelers=('travelers', 'sum'))
         .reset_index()
         .sort_values('trips', ascending=True)
@@ -169,8 +159,8 @@ with col_prov:
         x=top_prov['trips'],
         y=top_prov['province'],
         orientation='h',
-        marker_color=[_color_map.get(ct, '#CBD5E1') for ct in top_prov['city_type']],
-        text=[f"{r['trips']} ทริป · {r['city_type']}" for _, r in top_prov.iterrows()],
+        marker_color=[_color_map.get(ct, '#CBD5E1') for ct in top_prov['city_type_th']],
+        text=[f"{r['trips']} ทริป · {r['city_type_th']}" for _, r in top_prov.iterrows()],
         textposition='outside',
         hovertemplate='<b>%{y}</b><br>%{x} ทริป<extra></extra>',
     ))
@@ -191,11 +181,11 @@ with col_prov:
 
 with col_ct:
     st.markdown('<div class="section-label">CITY TYPE</div><div class="section-title">🏙️ สัดส่วนประเภทเมือง</div>', unsafe_allow_html=True)
-    ct_count = df['city_type'].value_counts().reset_index()
-    ct_count.columns = ['city_type', 'count']
+    ct_count = df['city_type_th'].value_counts().reset_index()
+    ct_count.columns = ['city_type_th', 'count']
     fig_ct = px.pie(
-        ct_count, values='count', names='city_type',
-        color='city_type',
+        ct_count, values='count', names='city_type_th',
+        color='city_type_th',
         color_discrete_map={'เมืองหลัก': '#0077B6', 'เมืองรอง': '#FF6E40', 'ไม่ทราบ': '#CBD5E1'},
         hole=0.55,
     )
@@ -311,12 +301,12 @@ st.markdown('<div class="section-label">DEEP DIVE</div>'
             '<div class="section-title">🔍 เมืองหลัก vs เมืองรอง</div>', unsafe_allow_html=True)
 
 _ct_order = ['เมืองหลัก', 'เมืองรอง', 'ไม่ทราบ']
-ct_stats = df.groupby('city_type').agg(
+ct_stats = df.groupby('city_type_th').agg(
     trips=('id', 'count'),
     avg_days=('num_days', 'mean'),
     avg_travelers=('travelers', 'mean'),
 ).reset_index()
-ct_stats['_order'] = ct_stats['city_type'].map({v: i for i, v in enumerate(_ct_order)})
+ct_stats['_order'] = ct_stats['city_type_th'].map({v: i for i, v in enumerate(_ct_order)})
 ct_stats = ct_stats.sort_values('_order').drop(columns='_order')
 
 # Metric comparison cards
@@ -324,12 +314,12 @@ _color_map2 = {'เมืองหลัก': '#0077B6', 'เมืองรอ�
 card_cols = st.columns(len(ct_stats) * 3)
 _ci = 0
 for _, row in ct_stats.iterrows():
-    _c = _color_map2.get(row['city_type'], '#94a3b8')
+    _c = _color_map2.get(row['city_type_th'], '#94a3b8')
     _pct_trips = round(row['trips'] / total_trips * 100)
     card_cols[_ci].markdown(
         f'<div style="background:white;border-radius:14px;padding:1rem;text-align:center;'
         f'box-shadow:0 1px 8px rgba(0,0,0,0.06);border-top:3px solid {_c};">'
-        f'<div style="font-size:0.7rem;font-weight:700;color:{_c};text-transform:uppercase;letter-spacing:0.06em">{row["city_type"]}</div>'
+        f'<div style="font-size:0.7rem;font-weight:700;color:{_c};text-transform:uppercase;letter-spacing:0.06em">{row["city_type_th"]}</div>'
         f'<div style="font-size:2rem;font-weight:800;color:#1a1a2e;margin:0.3rem 0">{_pct_trips}%</div>'
         f'<div style="font-size:0.75rem;color:#64748b">ของทริปทั้งหมด · {row["trips"]} ทริป</div>'
         f'</div>', unsafe_allow_html=True
@@ -355,20 +345,20 @@ for _, row in ct_stats.iterrows():
 st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
 
 # Stacked horizontal bar: budget × city type (เมืองหลักบน เมืองรองล่าง)
-ct_bud = df.groupby(['city_type', 'budget']).size().reset_index(name='count')
-ct_bud['_order'] = ct_bud['city_type'].map({v: i for i, v in enumerate(_ct_order)})
+ct_bud = df.groupby(['city_type_th', 'budget']).size().reset_index(name='count')
+ct_bud['_order'] = ct_bud['city_type_th'].map({v: i for i, v in enumerate(_ct_order)})
 ct_bud = ct_bud.sort_values('_order')
 
 _budgets = df['budget'].value_counts().index.tolist()
 _bud_colors = ['#0077B6', '#5DADE2', '#AED6F1', '#FF6E40', '#FFB347']
-_y_order = [c for c in reversed(_ct_order) if c in ct_bud['city_type'].values]
+_y_order = [c for c in reversed(_ct_order) if c in ct_bud['city_type_th'].values]
 
 fig_ctb = go.Figure()
 for i, bud in enumerate(_budgets):
-    _sub = ct_bud[ct_bud['budget'] == bud].set_index('city_type').reindex(_y_order).reset_index()
+    _sub = ct_bud[ct_bud['budget'] == bud].set_index('city_type_th').reindex(_y_order).reset_index()
     fig_ctb.add_trace(go.Bar(
         name=bud,
-        y=_sub['city_type'], x=_sub['count'],
+        y=_sub['city_type_th'], x=_sub['count'],
         orientation='h',
         marker_color=_bud_colors[i % len(_bud_colors)],
         text=_sub['count'].where(_sub['count'].notna(), ''),
@@ -399,7 +389,7 @@ top_province = df['province'].value_counts().index[0]
 sample_df    = df.sort_values('created_at', ascending=False).head(5)
 
 for _, row in sample_df.iterrows():
-    _ct    = row.get('city_type', '')
+    _ct    = row.get('city_type_th', '')
     _ct_badge = '🏙️ เมืองหลัก' if _ct == 'เมืองหลัก' else ('🌿 เมืองรอง' if _ct == 'เมืองรอง' else '')
     _ts    = str(row['created_at'])[:16]
     _bud_val = row.get('estimated_budget_thb')

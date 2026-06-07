@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # =============================================================
 # Scheduler2026.py
 # Runs Export2026.py automatically every day at 16:00 (11:30 PM)
@@ -19,13 +20,13 @@ import subprocess
 import pathlib
 from datetime import datetime
 
-PYTHON  = "/workspaces/gemma-data-driven-tourism-project/.venv/bin/python3"
-SCRIPT  = "/workspaces/gemma-data-driven-tourism-project/data/Export2026.py"
+PYTHON  = "python3"
+SCRIPT  = "/workspaces/gemma-data-driven-tourism-project/data/Frommongodb2026.py"
 LOG_DIR = pathlib.Path("/workspaces/gemma-data-driven-tourism-project/data")
 
 
 def run_export():
-    """Called every day at 16:00 — runs Export2026.py and logs output."""
+    """Called every day at 16:00 — runs Frommongodb2026.py and logs output."""
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_file = LOG_DIR / f"export_log_{datetime.now().strftime('%Y-%m-%d')}.txt"
 

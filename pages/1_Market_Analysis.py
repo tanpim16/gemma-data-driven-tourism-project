@@ -711,33 +711,23 @@ with tab_province:
     _pastel    = ['#FFE4E1','#E6E6FA','#F0FFF0','#FFF0F5','#F0F8FF']
 
     if _years_all:
-        _cols_y = st.columns(len(_years_all))
-        for _i, _year in enumerate(_years_all):
-            _yd     = _df_impact[_df_impact['Year'] == _year]
-            _tfest  = _yd[_yd['Has_Festival']]['total_revenue'].sum() / 1_000_000
-            _tnfest = _yd[~_yd['Has_Festival']]['total_revenue'].sum() / 1_000_000
-            _pct    = ((_tfest - _tnfest) / _tnfest * 100) if _tnfest > 0 else 0
-            _bg     = _pastel[_i % len(_pastel)]
-            with _cols_y[_i]:
-                _tc = "#228B22" if _pct >= 0 else "#B22222"
-                _ti = "📈 +" if _pct >= 0 else "📉 "
-                st.html(f"""
-                <div style="background:{_bg};padding:20px;border-radius:15px;border:1px solid #eaeaea;box-shadow:2px 4px 10px rgba(0,0,0,0.05);">
-                    <h3 style="color:#333;margin-top:0;text-align:center;">📅 ปี {int(_year)}</h3>
-                    <hr style="border-top:1px solid #ddd;margin:10px 0;">
-                    <p style="color:#555;font-size:14px;margin-bottom:2px;">รายได้เดือนมีเทศกาล</p>
-                    <h2 style="color:#00008B;margin-top:0;margin-bottom:5px;font-size:26px;">
-                        {_tfest:,.2f} <span style="font-size:16px;color:#444;">ล้านล้านบาท</span>
-                    </h2>
-                    <p style="color:{_tc};font-weight:bold;font-size:16px;margin-top:0;">
-                        {_ti}{_pct:,.1f}%
-                    </p>
-                    <p style="color:#555;font-size:14px;margin-bottom:2px;margin-top:15px;">รายได้เดือนไม่มีเทศกาล</p>
-                    <h3 style="color:#444;margin-top:0;font-size:20px;">
-                        {_tnfest:,.2f} <span style="font-size:14px;color:#555;">ล้านล้านบาท</span>
-                    </h3>
-                </div>
-                """)
+        cols_y = st.columns(len(_years_all))
+        for i, year in enumerate(_years_all):
+            with cols_y[i]:
+                yd = _df_impact[_df_impact['Year'] == year]
+                tfest = yd[yd['Has_Festival']]['total_revenue'].sum()
+                tnfest = yd[~yd['Has_Festival']]['total_revenue'].sum()
+                pct_change = ((tfest - tnfest) / tnfest * 100) if tnfest > 0 else 0
+
+                st.markdown(f"<div style='background:{_pastel[i % len(_pastel)]}; border-radius:12px; padding: 1rem; text-align:center; border:1px solid #eaeaea; box-shadow:2px 4px 10px rgba(0,0,0,0.05); height:100%;'>", unsafe_allow_html=True)
+                st.markdown(f"<h4 style='margin-top:0;text-align:center;'>📅 ปี {int(year)}</h4>", unsafe_allow_html=True)
+                st.metric(
+                    label="รายได้เดือนมีเทศกาล",
+                    value=f"{tfest/1_000_000:,.2f} ล้านล้านบาท",
+                    delta=f"{pct_change:,.1f}% เทียบกับเดือนไม่มีเทศกาล"
+                )
+                st.markdown(f"**เดือนไม่มีเทศกาล:** {tnfest/1_000_000:,.2f} ล้านล้านบาท")
+                st.markdown("</div>", unsafe_allow_html=True)
 
     st.divider()
 

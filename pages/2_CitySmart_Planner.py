@@ -445,12 +445,15 @@ def create_pdf(content_dict, province, lang='TH'):
 
 # ─── AI Setup ─────────────────────────────────────────────────────────────────
 _ai_ready = False
+gemma_model = None
 try:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    # Use the same secret structure as other pages ([gemini] section) for consistency.
+    genai.configure(api_key=st.secrets["gemini"]["GEMINI_API_KEY"])
     gemma_model = genai.GenerativeModel('gemma-4-31b-it')
     _ai_ready = True
 except Exception:
-    gemma_model = None
+    # If key is not found or any other error occurs, _ai_ready remains False
+    pass
 
 # ─── DuckDB Connection ─────────────────────────────────────────────────────────
 @st.cache_resource
@@ -2149,12 +2152,14 @@ Use this exact structure:
             _itinerary_log = st.session_state.main_res
             if st.session_state.gem_res:
                 _itinerary_log += "\n\n---\n\n" + st.session_state.gem_res
+            _city_type_en = df_tour[df_tour['ProvinceEN'] == province]['City_type_EN'].iloc[0]
             save_trip(
                 province  = format_province(province),
                 trip_date = t_date,
                 num_days  = days,
                 travelers = travelers,
                 budget    = budget_level,
+                city_type = _city_type_en,
                 itinerary = _itinerary_log,
             )
             get_all_trips.clear()

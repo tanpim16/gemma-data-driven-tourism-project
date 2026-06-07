@@ -144,7 +144,7 @@ if city_sel_sec:
     st.plotly_chart(fig2, use_container_width=True)
 
 # ----------------------------------------------------------------
-# แดชบอร์ดพยากรณ์ปี 2026 (ระบบดั้งเดิม)
+# กราฟ 3 แดชบอร์ดพยากรณ์ปี 2026 (ระบบดั้งเดิม)
 # ----------------------------------------------------------------
 st.divider()
 st.markdown('<div class="section-header"><h4>🔮 แดชบอร์ดพยากรณ์ปี 2026 (รวมปี 2025)</h4></div>', unsafe_allow_html=True)
@@ -221,18 +221,18 @@ if selected_prov:
     # ---------------------------------------------------------
     # 💡 2. วาง API KEY ของคุณตรงนี้ (ลบข้อความภาษาไทยออกแล้วใส่ Key จริง)
     # ---------------------------------------------------------
-    gemini_key = "AIzaSyCx4NR1Aky_j6eYvidlc0Hf2Hb8wwOtWpI"
+    gemini_key = st.secrets["gemini"]["GEMINI_API_KEY"]
     
     # เช็คว่าผู้ใช้เปลี่ยน Key หรือยัง
-    if gemini_key == "ใส่_API_KEY_จริงของคุณที่นี่" or gemini_key == "":
-        st.error("⚠️ โค้ดยังไม่พร้อมใช้งาน: กรุณาแก้ไขไฟล์แล้วใส่ GEMINI_API_KEY ในบรรทัดที่กำหนดก่อนครับ")
+    if not gemini_key or gemini_key.strip() == "":
+        st.error("⚠️ Gemini API Key ไม่พบใน secrets.toml ตรวจสอบ [gemini] GEMINI_API_KEY")
     else:
         st.success(f"✅ พร้อมใช้งาน AI (ตรวจพบ Key ที่ลงท้ายด้วย ...{gemini_key[-4:]})")
 
     # 3. การทำงานเมื่อกดปุ่ม
     if st.button("🚀 รัน AI Agent (Gemini) เพื่อพยากรณ์ใหม่", type="primary"):
         # เช็คอีกครั้งเพื่อความชัวร์ ป้องกันกดปุ่มตอนที่ยังไม่ใส่ Key
-        if gemini_key == "ใส่_API_KEY_จริงของคุณที่นี่" or gemini_key == "":
+        if not gemini_key or gemini_key.strip() == "":
             st.error("❌ ไม่สามารถประมวลผลได้ กรุณาใส่ API Key ให้เรียบร้อยก่อน")
         elif not gemini_selected_provs:
             st.warning("⚠️ กรุณาเลือกอย่างน้อย 1 จังหวัด")
@@ -242,7 +242,7 @@ if selected_prov:
                     # เชื่อมต่อกับระบบ Gemini
                     genai.configure(api_key=gemini_key)
                     model = genai.GenerativeModel(
-                        model_name="gemini-2.0-flash",
+                        model_name="gemini-2.5-flash", # <--- อัปเดตเป็น Gemini 2.5 Flash
                         system_instruction="You are an expert Data Scientist. Analyze seasonal patterns. Return ONLY a JSON object where keys are province names and values are lists of 12 integers for 2026."
                     )
 
