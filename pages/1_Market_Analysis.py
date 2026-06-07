@@ -152,7 +152,11 @@ def load_data():
         df_fe = conn.execute(
             "SELECT * FROM read_csv_auto('data/Thailand_Festival_With_Events.csv')"
         ).df()
-        df_f  = pd.read_excel('data/Thailand_Festival_Master.xlsx')
+        try:
+            df_f  = pd.read_excel('data/Thailand_Festival_Master.xlsx')
+        except ImportError:
+            st.error("ในการอ่านไฟล์ Excel (.xlsx) จำเป็นต้องใช้ไลบรารี `openpyxl` กรุณาเพิ่ม `openpyxl` ลงในไฟล์ `requirements.txt` ของคุณ")
+            st.stop()
         if df_t is None or df_t.empty:
             st.error("❌ CRITICAL: Tourism data could not be loaded from any source.", icon="🔥")
             st.stop()
