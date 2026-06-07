@@ -464,6 +464,8 @@ def get_duckdb_conn():
 # ─── Load Data ────────────────────────────────────────────────────────────────
 @st.cache_data
 def load_data():
+    df_t = None
+    # --- Attempt to load primary data source (Snowflake) ---
     try:
         # ── Tourism data จาก Snowflake ────────────────────────────────────────
         df_t = query_snowflake("SELECT * FROM TOURISM_DB.PUBLIC.TOURISM_STATS")
@@ -474,13 +476,36 @@ def load_data():
             'PRICE_INDEX': 'Price_Index', 'NO': 'No',
         }
         df_t.columns = [_remap.get(c, c.lower()) for c in df_t.columns]
+        st.toast("❄️ Loaded data from Snowflake.", icon="✅")
+    except Exception as e:
+        st.warning(f"⚠️ Snowflake connection failed. Falling back to local CSV. Error: {e}", icon="📉")
+        try:
+            # --- Fallback to local CSV if Snowflake fails ---
+            csv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'master_tourism_analysis.csv')
+            df_t = pd.read_csv(csv_path)
+            # Apply same cleaning as in Business_planning.py for consistency
+            if "Year" in df_t.columns:
+                df_t["Year"] = pd.to_numeric(df_t["Year"], errors="coerce")
+                df_t["Year"] = df_t["Year"].apply(lambda x: x - 543 if pd.notnull(x) and x > 2500 else x)
+            st.toast("📦 Loaded fallback data from local CSV.", icon="✅")
+        except FileNotFoundError:
+            st.error("❌ CRITICAL: Snowflake failed and the local fallback file `data/master_tourism_analysis.csv` was not found.", icon="🔥")
+            st.stop()
 
         # ── Festival data ยัง local (DuckDB + pandas) ─────────────────────────
+    # --- Load festival data (always local) and perform final cleaning ---
+    try:
         conn  = get_duckdb_conn()
         df_fe = conn.execute(
             "SELECT * FROM read_csv_auto('data/Thailand_Festival_With_Events.csv')"
         ).df()
         df_f  = pd.read_excel('data/Thailand_Festival_Master.xlsx')
+
+        # Ensure df_t is valid before proceeding
+        if df_t is None or df_t.empty:
+            st.error("❌ CRITICAL: Tourism data could not be loaded from any source.", icon="🔥")
+            st.stop()
+
         df_t['ProvinceEN'] = df_t['ProvinceEN'].astype(str).str.strip()
         df_t['Region_EN'] = df_t['Region_EN'].astype(str).str.strip()
         df_t.dropna(subset=['ProvinceEN', 'Region_EN'], inplace=True)
@@ -519,6 +544,7 @@ def load_data():
         st.stop()
     except Exception as e:
         st.error(f"เกิดข้อผิดพลาดในการโหลดข้อมูล: {e}")
+        st.error(f"An error occurred during data processing: {e}", icon="🔥")
         st.stop()
 
 # ─── Province Coordinates ─────────────────────────────────────────────────────

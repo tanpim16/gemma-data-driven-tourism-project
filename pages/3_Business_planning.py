@@ -221,18 +221,20 @@ if selected_prov:
     # ---------------------------------------------------------
     # 💡 2. วาง API KEY ของคุณตรงนี้ (ลบข้อความภาษาไทยออกแล้วใส่ Key จริง)
     # ---------------------------------------------------------
-    gemini_key = st.secrets["gemini"]["GEMINI_API_KEY"]
+    try:
+        gemini_key = st.secrets["gemini"]["GEMINI_API_KEY"]
+    except (KeyError, AttributeError):
+        gemini_key = "" # ถ้าไม่เจอ Key ให้เป็นค่าว่าง
     
     # เช็คว่าผู้ใช้เปลี่ยน Key หรือยัง
-    if not gemini_key or gemini_key.strip() == "":
+    if not gemini_key:
         st.error("⚠️ Gemini API Key ไม่พบใน secrets.toml ตรวจสอบ [gemini] GEMINI_API_KEY")
     else:
         st.success(f"✅ พร้อมใช้งาน AI (ตรวจพบ Key ที่ลงท้ายด้วย ...{gemini_key[-4:]})")
 
     # 3. การทำงานเมื่อกดปุ่ม
     if st.button("🚀 รัน AI Agent (Gemini) เพื่อพยากรณ์ใหม่", type="primary"):
-        # เช็คอีกครั้งเพื่อความชัวร์ ป้องกันกดปุ่มตอนที่ยังไม่ใส่ Key
-        if not gemini_key or gemini_key.strip() == "":
+        if not gemini_key:
             st.error("❌ ไม่สามารถประมวลผลได้ กรุณาใส่ API Key ให้เรียบร้อยก่อน")
         elif not gemini_selected_provs:
             st.warning("⚠️ กรุณาเลือกอย่างน้อย 1 จังหวัด")

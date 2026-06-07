@@ -75,13 +75,18 @@ with col_refresh:
         st.rerun()
 
 # ── Load ──────────────────────────────────────────────────────────────────────
-df = get_all_trips()
+try:
+    df = get_all_trips()
+except Exception as e:
+    st.error(f"⚠️ ไม่สามารถเชื่อมต่อฐานข้อมูล Trips ได้: {e}")
+    df = pd.DataFrame() # สร้าง DataFrame ว่างเพื่อป้องกันข้อผิดพลาด
 
 if st.session_state.get('_mysql_err'):
     st.error(f"⚠️ MySQL Error: {st.session_state['_mysql_err']}")
 
 if df.empty:
-    st.info("📭 ยังไม่มีข้อมูลแผนทริป — สร้างแผนที่ CitySmart Planner ระบบจะ log ให้อัตโนมัติ")
+    st.info("📭 ยังไม่มีข้อมูลแผนทริป หรือไม่สามารถเชื่อมต่อฐานข้อมูลได้ "
+            "เมื่อสร้างแผนที่หน้า CitySmart Planner ระบบจะ log ข้อมูลให้อัตโนมัติ")
     st.stop()
 
 # ── Prep ──────────────────────────────────────────────────────────────────────

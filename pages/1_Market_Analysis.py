@@ -126,28 +126,41 @@ def get_duckdb_conn():
 @st.cache_data
 def load_data():
     try:
-        # ── Tourism data จาก Snowflake (cache_data = serialize ได้) ──────────
-        df_t = query_snowflake("SELECT * FROM TOURISM_DB.PUBLIC.TOURISM_STATS")
-        # Snowflake คืน UPPERCASE columns → remap กลับเป็น original case
-        _remap = {
-            'YEAR': 'Year', 'MONTH': 'Month', 'PROVINCETHAI': 'ProvinceThai',
-            'PROVINCEEN': 'ProvinceEN', 'REGION_TH': 'Region_TH', 'REGION_EN': 'Region_EN',
-            'CITY_TYPE_TH': 'City_type_TH', 'CITY_TYPE_EN': 'City_type_EN',
-            'PRICE_INDEX': 'Price_Index', 'NO': 'No',
-        }
-        df_t.columns = [_remap.get(c, c.lower()) for c in df_t.columns]
+        # ── Tourism data: Try Snowflake, fallback to CSV ──────────────────────
+        try:
+            df_t = query_snowflake("SELECT * FROM TOURISM_DB.PUBLIC.TOURISM_STATS")
+            # Snowflake returns UPPERCASE columns → remap to original case
+            _remap = {
+                'YEAR': 'Year', 'MONTH': 'Month', 'PROVINCETHAI': 'ProvinceThai',
+                'PROVINCEEN': 'ProvinceEN', 'REGION_TH': 'Region_TH', 'REGION_EN': 'Region_EN',
+                'CITY_TYPE_TH': 'City_type_TH', 'CITY_TYPE_EN': 'City_type_EN',
+                'PRICE_INDEX': 'Price_Index', 'NO': 'No',
+            }
+            df_t.columns = [_remap.get(c, c.lower()) for c in df_t.columns]
+            st.toast("❄️ Loaded data from Snowflake.", icon="✅")
+        except Exception:
+            st.warning("⚠️ Snowflake connection failed. Falling back to local CSV.", icon="📉")
+            csv_path = 'data/master_tourism_analysis.csv'
+            df_t = pd.read_csv(csv_path)
+            if "Year" in df_t.columns:
+                df_t["Year"] = pd.to_numeric(df_t["Year"], errors="coerce")
+                df_t["Year"] = df_t["Year"].apply(lambda x: x - 543 if pd.notnull(x) and x > 2500 else x)
+            st.toast("📦 Loaded fallback data from local CSV.", icon="✅")
 
-        # ── Festival data ยังคง local (DuckDB + pandas) ──────────────────────
+        # ── Festival data (always local) ──────────────────────
         conn  = get_duckdb_conn()
         df_fe = conn.execute(
             "SELECT * FROM read_csv_auto('data/Thailand_Festival_With_Events.csv')"
         ).df()
         df_f  = pd.read_excel('data/Thailand_Festival_Master.xlsx')
+        if df_t is None or df_t.empty:
+            st.error("❌ CRITICAL: Tourism data could not be loaded from any source.", icon="🔥")
+            st.stop()
         return df_t.dropna(subset=['ProvinceEN']), df_f, df_fe
     except FileNotFoundError as e:
-        st.error(f"ไม่พบไฟล์ข้อมูล: {e}"); st.stop()
+        st.error(f"ไม่พบไฟล์ข้อมูลที่จำเป็น (CSV/Excel): {e}"); st.stop()
     except Exception as e:
-        st.error(f"เกิดข้อผิดพลาดในการโหลดข้อมูล: {e}"); st.stop()
+        st.error(f"เกิดข้อผิดพลาดร้ายแรงในการโหลดข้อมูล: {e}"); st.stop()
 
 
 df_tour, df_fest, df_fest_events = load_data()
