@@ -658,15 +658,18 @@ def haversine_km(lat1, lon1, lat2, lon2):
     return 2 * R * math.asin(math.sqrt(a))
 
 def find_nearest_secondary_city(selected_province, city_info, df_tour):
+    """Finds the geographically nearest secondary city, regardless of region."""
     base_coord = PROVINCE_COORDS.get(selected_province)
+    if not base_coord:
+        return None
 
+    # Search all secondary cities nationwide
     candidates = df_tour[
         (df_tour['City_type_EN'] == 'Secondary City') &
-        (df_tour['Region_EN'] == city_info['Region_EN']) &
         (df_tour['ProvinceEN'] != selected_province)
     ][['ProvinceEN', 'ProvinceTH']].drop_duplicates()
 
-    if not candidates.empty and base_coord:
+    if not candidates.empty:
         scored = []
         for _, row in candidates.iterrows():
             candidate = row['ProvinceEN']
@@ -678,13 +681,7 @@ def find_nearest_secondary_city(selected_province, city_info, df_tour):
 
         if scored:
             scored.sort(key=lambda x: x[1])
-            return scored[0][0]
-
-    # fallback by region
-    fallback_candidates = REGION_NEARBY_FALLBACK.get(city_info['Region_EN'], [])
-    for p in fallback_candidates:
-        if p != selected_province and p in df_tour['ProvinceEN'].values:
-            return p
+            return scored[0][0] # Return the absolute nearest
 
     return None
 
