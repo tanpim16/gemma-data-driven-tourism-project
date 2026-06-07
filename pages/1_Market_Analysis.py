@@ -486,7 +486,7 @@ with tab_national:
     _fig_ts.update_layout(
         xaxis_title="วันที่ (Date)",
         yaxis_title=_y_lbl_ts,
-        margin=dict(t=20, b=0),
+        margin=dict(t=50, b=0, l=0, r=0),
         plot_bgcolor='white',
         yaxis=dict(gridcolor='#eee'),
         font=dict(family="Sarabun, sans-serif", size=13),

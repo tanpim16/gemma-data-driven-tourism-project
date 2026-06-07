@@ -466,7 +466,7 @@ except (KeyError, AttributeError):
 
 if _api_key:
     genai.configure(api_key=_api_key)
-    gemma_model = genai.GenerativeModel('gemini-1.5-flash')
+    gemma_model = genai.GenerativeModel('gemma-4-31b-it')
     _ai_ready = True
 
 # ─── DuckDB Connection ─────────────────────────────────────────────────────────
