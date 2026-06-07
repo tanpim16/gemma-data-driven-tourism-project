@@ -448,7 +448,7 @@ _ai_ready = False
 gemma_model = None
 try:
     # Use the same secret structure as other pages ([gemini] section) for consistency.
-    genai.configure(api_key=st.secrets["gemini"]["GEMINI_API_KEY"])
+    genai.configure(api_key=st.secrets["gemini"]["TANYA_GEMINI_API_KEY"])
     gemma_model = genai.GenerativeModel('gemini-1.5-flash')
     _ai_ready = True
 except Exception:
