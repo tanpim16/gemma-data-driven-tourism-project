@@ -2172,16 +2172,7 @@ Use this exact structure:
                 fallback_text=gem_fallback
             )
 
-            if isinstance(raw_gem, str) and raw_gem.strip():
-                raw_gem = normalize_spaces(raw_gem)
-                lines = raw_gem.split('\n')
-                first = lines[0] if lines else ''
-                if any(kw in first.lower() for kw in ['ขับรถ', 'ระยะทาง', 'กิโลเมตร', 'ชั่วโมง', 'นาที']):
-                    st.session_state.travel_info = first
-                    st.session_state.gem_res = clean_itinerary_response('\n'.join(lines[1:]).strip(), days)
-                else:
-                    st.session_state.gem_res = clean_itinerary_response(raw_gem, days)
-
+            st.session_state.gem_res = clean_itinerary_response(raw_gem, days)
         st.session_state.generated = True
         st.success("✅ สร้างแผนเรียบร้อย!")
 
@@ -2365,14 +2356,6 @@ if st.session_state.main_res:
         with col_r:
             st.markdown(_plan_header(_badge_gem, gem_th_disp, '#FF6E40'),
                         unsafe_allow_html=True)
-            if st.session_state.travel_info:
-                st.markdown(
-                    f'<div style="font-size:0.87rem;color:#555;'
-                    f'background:rgba(255,110,64,0.07);'
-                    f'padding:0.45rem 0.75rem;border-radius:10px;margin-bottom:0.5rem;'
-                    f'border-left:3px solid #FF6E40;">🚗 {st.session_state.travel_info}</div>',
-                    unsafe_allow_html=True
-                )
             gem_html = build_timeline_html(st.session_state.gem_res, gem=True)
             st.markdown(gem_html if gem_html else strip_coords_for_display(st.session_state.gem_res),
                         unsafe_allow_html=True)
