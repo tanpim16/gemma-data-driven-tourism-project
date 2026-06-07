@@ -448,7 +448,7 @@ def create_pdf(content_dict, province, lang='TH'):
     buf = io.BytesIO()
     pdf.output(buf)
     buf.seek(0)
-    return buff
+    return buf
 
 # ─── AI Setup ─────────────────────────────────────────────────────────────────
 _ai_ready = False
@@ -1365,14 +1365,12 @@ def parse_weather_blocks(text):
 
 def ensure_itinerary_sections(text, days):
     if not isinstance(text, str):
-        return ""
+        text = ""
 
     text = strip_ai_meta_lines(text)
-    if not text.strip():
-        return ""
 
     # ถ้ามีหัวข้ออยู่แล้ว ใช้เลย
-    if re.search(r'^##\s*🌟\s*วันที่', text, flags=re.MULTILINE):
+    if text.strip() and re.search(r'^##\s*🌟\s*วันที่', text, flags=re.MULTILINE):
         return normalize_spaces(text)
 
     # fallback: ถ้า AI ตอบเป็นก้อนเดียว
