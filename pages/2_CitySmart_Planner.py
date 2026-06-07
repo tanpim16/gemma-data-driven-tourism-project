@@ -453,14 +453,21 @@ def create_pdf(content_dict, province, lang='TH'):
 # ─── AI Setup ─────────────────────────────────────────────────────────────────
 _ai_ready = False
 gemma_model = None
+_api_key = None
 try:
-    # Use the same secret structure as other pages ([gemini] section) for consistency.
-    genai.configure(api_key=st.secrets["gemini"]["TANYA_GEMINI_API_KEY"])
+    # พยายามใช้ TANYA_GEMINI_API_KEY ก่อนสำหรับหน้านี้
+    _api_key = st.secrets["gemini"]["TANYA_GEMINI_API_KEY"]
+except (KeyError, AttributeError):
+    try:
+        # หากไม่เจอ ให้ลองใช้ Key หลัก
+        _api_key = st.secrets["gemini"]["GEMINI_API_KEY"]
+    except (KeyError, AttributeError):
+        _api_key = None
+
+if _api_key:
+    genai.configure(api_key=_api_key)
     gemma_model = genai.GenerativeModel('gemini-1.5-flash')
     _ai_ready = True
-except Exception:
-    # If key is not found or any other error occurs, _ai_ready remains False
-    pass
 
 # ─── DuckDB Connection ─────────────────────────────────────────────────────────
 @st.cache_resource

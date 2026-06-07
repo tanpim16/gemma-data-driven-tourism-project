@@ -222,9 +222,15 @@ if selected_prov:
     # 💡 2. วาง API KEY ของคุณตรงนี้ (ลบข้อความภาษาไทยออกแล้วใส่ Key จริง)
     # ---------------------------------------------------------
     try:
+        # พยายามใช้ Key หลักก่อน
         gemini_key = st.secrets["gemini"]["GEMINI_API_KEY"]
     except (KeyError, AttributeError):
-        gemini_key = "" # ถ้าไม่เจอ Key ให้เป็นค่าว่าง
+        try:
+            # หากไม่เจอ ให้ลองใช้ Key สำรอง
+            gemini_key = st.secrets["gemini"]["TANYA_GEMINI_API_KEY"]
+            st.info("ใช้ TANYA_GEMINI_API_KEY เนื่องจากไม่พบ GEMINI_API_KEY")
+        except (KeyError, AttributeError):
+            gemini_key = "" # ถ้าไม่เจอทั้งสอง Key ให้เป็นค่าว่าง
     
     # เช็คว่าผู้ใช้เปลี่ยน Key หรือยัง
     if not gemini_key:
