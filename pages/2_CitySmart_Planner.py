@@ -463,11 +463,15 @@ def get_duckdb_conn():
 
 # ─── Load Data ────────────────────────────────────────────────────────────────
 @st.cache_data
-def load_data():
+def load_data_core():
+    """
+    Loads all necessary dataframes. Raises exceptions on failure.
+    This function is designed to be cached and should not have side effects
+    like Streamlit UI calls. Returns a tuple: ((dataframes), snowflake_failed_flag).
+    """
     df_t = None
-    # --- Attempt to load primary data source (Snowflake) ---
+    snowflake_failed = False
     try:
-        # ── Tourism data จาก Snowflake ────────────────────────────────────────
         df_t = query_snowflake("SELECT * FROM TOURISM_DB.PUBLIC.TOURISM_STATS")
         _remap = {
             'YEAR': 'Year', 'MONTH': 'Month', 'PROVINCETHAI': 'ProvinceThai',
@@ -476,80 +480,58 @@ def load_data():
             'PRICE_INDEX': 'Price_Index', 'NO': 'No',
         }
         df_t.columns = [_remap.get(c, c.lower()) for c in df_t.columns]
-        st.toast("❄️ Loaded data from Snowflake.", icon="✅")
-    except Exception as e:
-        st.warning(f"⚠️ Snowflake connection failed. Falling back to local CSV. Error: {e}", icon="📉")
-        try:
-            # --- Fallback to local CSV if Snowflake fails ---
-            csv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'master_tourism_analysis.csv')
-            df_t = pd.read_csv(csv_path)
-            # Apply same cleaning as in Business_planning.py for consistency
-            if "Year" in df_t.columns:
-                df_t["Year"] = pd.to_numeric(df_t["Year"], errors="coerce")
-                df_t["Year"] = df_t["Year"].apply(lambda x: x - 543 if pd.notnull(x) and x > 2500 else x)
-            st.toast("📦 Loaded fallback data from local CSV.", icon="✅")
-        except FileNotFoundError:
-            st.error("❌ CRITICAL: Snowflake failed and the local fallback file `data/master_tourism_analysis.csv` was not found.", icon="🔥")
-            st.stop()
+    except Exception:
+        snowflake_failed = True
+        df_t = None
 
-        # ── Festival data ยัง local (DuckDB + pandas) ─────────────────────────
-    # --- Load festival data (always local) and perform final cleaning ---
-    try:
-        conn  = get_duckdb_conn()
-        df_fe = conn.execute(
-            "SELECT * FROM read_csv_auto('data/Thailand_Festival_With_Events.csv')"
-        ).df()
-        try:
-            df_f  = pd.read_excel('data/Thailand_Festival_Master.xlsx')
-        except ImportError:
-            st.error("ในการอ่านไฟล์ Excel (.xlsx) จำเป็นต้องใช้ไลบรารี `openpyxl` กรุณาเพิ่ม `openpyxl` ลงในไฟล์ `requirements.txt` ของคุณ")
-            st.stop()
+    if df_t is None:
+        csv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'master_tourism_analysis.csv')
+        df_t = pd.read_csv(csv_path)
+        if "Year" in df_t.columns:
+            df_t["Year"] = pd.to_numeric(df_t["Year"], errors="coerce")
+            df_t["Year"] = df_t["Year"].apply(lambda x: x - 543 if pd.notnull(x) and x > 2500 else x)
 
-        # Ensure df_t is valid before proceeding
-        if df_t is None or df_t.empty:
-            st.error("❌ CRITICAL: Tourism data could not be loaded from any source.", icon="🔥")
-            st.stop()
+    conn = get_duckdb_conn()
+    df_fe = conn.execute("SELECT * FROM read_csv_auto('data/Thailand_Festival_With_Events.csv')").df()
+    df_f = pd.read_excel('data/Thailand_Festival_Master.xlsx')
 
-        df_t['ProvinceEN'] = df_t['ProvinceEN'].astype(str).str.strip()
-        df_t['Region_EN'] = df_t['Region_EN'].astype(str).str.strip()
-        df_t.dropna(subset=['ProvinceEN', 'Region_EN'], inplace=True)
+    if df_t is None or df_t.empty:
+        raise ValueError("Tourism data could not be loaded from any source.")
 
-        province_th_map = {
-            'Amnat Charoen': 'อำนาจเจริญ', 'Ang Thong': 'อ่างทอง', 'Bangkok': 'กรุงเทพมหานคร',
-            'Bueng Kan': 'บึงกาฬ', 'Buri Ram': 'บุรีรัมย์', 'Chachoengsao': 'ฉะเชิงเทรา',
-            'Chai Nat': 'ชัยนาท', 'Chaiyaphum': 'ชัยภูมิ', 'Chanthaburi': 'จันทบุรี',
-            'Chiang Mai': 'เชียงใหม่', 'Chiang Rai': 'เชียงราย', 'Chon Buri': 'ชลบุรี',
-            'Chumphon': 'ชุมพร', 'Kalasin': 'กาฬสินธุ์', 'Kamphaeng Phet': 'กำแพงเพชร',
-            'Kanchanaburi': 'กาญจนบุรี', 'Khon Kaen': 'ขอนแก่น', 'Krabi': 'กระบี่',
-            'Lampang': 'ลำปาง', 'Lamphun': 'ลำพูน', 'Loei': 'เลย', 'Lop Buri': 'ลพบุรี',
-            'Mae Hong Son': 'แม่ฮ่องสอน', 'Maha Sarakham': 'มหาสารคาม', 'Mukdahan': 'มุกดาหาร',
-            'Nakhon Nayok': 'นครนายก', 'Nakhon Pathom': 'นครปฐม', 'Nakhon Phanom': 'นครพนม',
-            'Nakhon Ratchasima': 'นครราชสีมา', 'Nakhon Sawan': 'นครสวรรค์',
-            'Nakhon Si Thammarat': 'นครศรีธรรมราช', 'Nan': 'น่าน', 'Narathiwat': 'นราธิวาส',
-            'Nong Bua Lam Phu': 'หนองบัวลำภู', 'Nong Khai': 'หนองคาย', 'Nonthaburi': 'นนทบุรี',
-            'Pathum Thani': 'ปทุมธานี', 'Pattani': 'ปัตตานี', 'Phang Nga': 'พังงา',
-            'Phangnga': 'พังงา', 'Phatthalung': 'พัทลุง', 'Phayao': 'พะเยา', 'Phetchabun': 'เพชรบูรณ์',
-            'Phetchaburi': 'เพชรบุรี', 'Phichit': 'พิจิตร', 'Phitsanulok': 'พิษณุโลก',
-            'Phra Nakhon Si Ayutthaya': 'พระนครศรีอยุธยา', 'Phrae': 'แพร่', 'Phuket': 'ภูเก็ต',
-            'Prachin Buri': 'ปราจีนบุรี', 'Prachuap Khiri Khan': 'ประจวบคีรีขันธ์',
-            'Ranong': 'ระนอง', 'Ratchaburi': 'ราชบุรี', 'Rayong': 'ระยอง', 'Roi Et': 'ร้อยเอ็ด',
-            'Sa Kaeo': 'สระแก้ว', 'Sakon Nakhon': 'สกลนคร', 'Samut Prakan': 'สมุทรปราการ',
-            'Samut Sakhon': 'สมุทรสาคร', 'Samut Songkhram': 'สมุทรสงคราม', 'Saraburi': 'สระบุรี',
-            'Satun': 'สตูล', 'Si Sa Ket': 'ศรีสะเกษ', 'Sing Buri': 'สิงห์บุรี',
-            'Songkhla': 'สงขลา', 'Sukhothai': 'สุโขทัย', 'Suphan Buri': 'สุพรรณบุรี',
-            'Surat Thani': 'สุราษฎร์ธานี', 'Surin': 'สุรินทร์', 'Tak': 'ตาก', 'Trang': 'ตรัง',
-            'Trat': 'ตราด', 'Ubon Ratchathani': 'อุบลราชธานี', 'Udon Thani': 'อุดรธานี',
-            'Uthai Thani': 'อุทัยธานี', 'Uttaradit': 'อุตรดิตถ์', 'Yala': 'ยะลา', 'Yasothon': 'ยโสธร'
-        }
-        df_t['ProvinceTH'] = df_t['ProvinceEN'].map(province_th_map).fillna(df_t['ProvinceEN'])
-        return df_t, df_f, df_fe
-    except FileNotFoundError as e:
-        st.error(f"ไม่พบไฟล์ข้อมูล: {e}")
-        st.stop()
-    except Exception as e:
-        st.error(f"เกิดข้อผิดพลาดในการโหลดข้อมูล: {e}")
-        st.error(f"An error occurred during data processing: {e}", icon="🔥")
-        st.stop()
+    df_t['ProvinceEN'] = df_t['ProvinceEN'].astype(str).str.strip()
+    df_t['Region_EN'] = df_t['Region_EN'].astype(str).str.strip()
+    df_t.dropna(subset=['ProvinceEN', 'Region_EN'], inplace=True)
+
+    province_th_map = {
+        'Amnat Charoen': 'อำนาจเจริญ', 'Ang Thong': 'อ่างทอง', 'Bangkok': 'กรุงเทพมหานคร',
+        'Bueng Kan': 'บึงกาฬ', 'Buri Ram': 'บุรีรัมย์', 'Chachoengsao': 'ฉะเชิงเทรา',
+        'Chai Nat': 'ชัยนาท', 'Chaiyaphum': 'ชัยภูมิ', 'Chanthaburi': 'จันทบุรี',
+        'Chiang Mai': 'เชียงใหม่', 'Chiang Rai': 'เชียงราย', 'Chon Buri': 'ชลบุรี',
+        'Chumphon': 'ชุมพร', 'Kalasin': 'กาฬสินธุ์', 'Kamphaeng Phet': 'กำแพงเพชร',
+        'Kanchanaburi': 'กาญจนบุรี', 'Khon Kaen': 'ขอนแก่น', 'Krabi': 'กระบี่',
+        'Lampang': 'ลำปาง', 'Lamphun': 'ลำพูน', 'Loei': 'เลย', 'Lop Buri': 'ลพบุรี',
+        'Mae Hong Son': 'แม่ฮ่องสอน', 'Maha Sarakham': 'มหาสารคาม', 'Mukdahan': 'มุกดาหาร',
+        'Nakhon Nayok': 'นครนายก', 'Nakhon Pathom': 'นครปฐม', 'Nakhon Phanom': 'นครพนม',
+        'Nakhon Ratchasima': 'นครราชสีมา', 'Nakhon Sawan': 'นครสวรรค์',
+        'Nakhon Si Thammarat': 'นครศรีธรรมราช', 'Nan': 'น่าน', 'Narathiwat': 'นราธิวาส',
+        'Nong Bua Lam Phu': 'หนองบัวลำภู', 'Nong Khai': 'หนองคาย', 'Nonthaburi': 'นนทบุรี',
+        'Pathum Thani': 'ปทุมธานี', 'Pattani': 'ปัตตานี', 'Phang Nga': 'พังงา',
+        'Phangnga': 'พังงา', 'Phatthalung': 'พัทลุง', 'Phayao': 'พะเยา', 'Phetchabun': 'เพชรบูรณ์',
+        'Phetchaburi': 'เพชรบุรี', 'Phichit': 'พิจิตร', 'Phitsanulok': 'พิษณุโลก',
+        'Phra Nakhon Si Ayutthaya': 'พระนครศรีอยุธยา', 'Phrae': 'แพร่', 'Phuket': 'ภูเก็ต',
+        'Prachin Buri': 'ปราจีนบุรี', 'Prachuap Khiri Khan': 'ประจวบคีรีขันธ์',
+        'Ranong': 'ระนอง', 'Ratchaburi': 'ราชบุรี', 'Rayong': 'ระยอง', 'Roi Et': 'ร้อยเอ็ด',
+        'Sa Kaeo': 'สระแก้ว', 'Sakon Nakhon': 'สกลนคร', 'Samut Prakan': 'สมุทรปราการ',
+        'Samut Sakhon': 'สมุทรสาคร', 'Samut Songkhram': 'สมุทรสงคราม', 'Saraburi': 'สระบุรี',
+        'Satun': 'สตูล', 'Si Sa Ket': 'ศรีสะเกษ', 'Sing Buri': 'สิงห์บุรี',
+        'Songkhla': 'สงขลา', 'Sukhothai': 'สุโขทัย', 'Suphan Buri': 'สุพรรณบุรี',
+        'Surat Thani': 'สุราษฎร์ธานี', 'Surin': 'สุรินทร์', 'Tak': 'ตาก', 'Trang': 'ตรัง',
+        'Trat': 'ตราด', 'Ubon Ratchathani': 'อุบลราชธานี', 'Udon Thani': 'อุดรธานี',
+        'Uthai Thani': 'อุทัยธานี', 'Uttaradit': 'อุตรดิตถ์', 'Yala': 'ยะลา', 'Yasothon': 'ยโสธร'
+    }
+    df_t['ProvinceTH'] = df_t['ProvinceEN'].map(province_th_map).fillna(df_t['ProvinceEN'])
+
+    return (df_t, df_f, df_fe), snowflake_failed
 
 # ─── Province Coordinates ─────────────────────────────────────────────────────
 PROVINCE_COORDS = {
@@ -1485,7 +1467,19 @@ for key, default in {
 if st.session_state.lang not in ('TH', 'EN'):
     st.session_state.lang = 'TH'
 
-df_tour, df_fest, df_fest_events = load_data()
+try:
+    with st.spinner("กำลังโหลดข้อมูลการท่องเที่ยว..."):
+        (df_tour, df_fest, df_fest_events), snowflake_was_skipped = load_data_core()
+    if snowflake_was_skipped:
+        st.warning("⚠️ Snowflake connection failed. Falling back to local CSV.", icon="📉")
+    else:
+        st.toast("❄️ Loaded data from Snowflake.", icon="✅")
+except (FileNotFoundError, ImportError, ValueError) as e:
+    st.error(f"❌ เกิดข้อผิดพลาดร้ายแรงในการโหลดข้อมูล:\n\n{e}")
+    st.stop()
+except Exception as e:
+    st.error(f"❌ เกิดข้อผิดพลาดที่ไม่คาดคิดระหว่างการโหลดข้อมูล:\n\n{e}")
+    st.stop()
 
 # Pre-build province list (reused by all persona modes)
 _province_df = df_tour[['ProvinceEN', 'ProvinceTH']].drop_duplicates().dropna(subset=['ProvinceEN', 'ProvinceTH'])
