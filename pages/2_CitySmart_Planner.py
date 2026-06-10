@@ -8,6 +8,7 @@ from fpdf.enums import XPos, YPos
 import io
 import re
 import math
+import time
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from utils.snowflake_connector import query_snowflake
@@ -1637,9 +1638,14 @@ def _itinerary_complete(text, expected_days=None):
     return True
 
 
-def call_ai_strict(prompt, mode="general", max_retries=2, fallback_text="",
+def call_ai_strict(prompt, mode="general", max_retries=3, fallback_text="",
                    max_tokens=2200, expected_days=None):
     for attempt in range(max_retries):
+        # Back off before each retry — transient rate limits (429) / overload
+        # (503) usually clear within a second or two, so an immediate re-fire
+        # just fails again. This is the main cure for "sometimes works".
+        if attempt > 0:
+            time.sleep(min(8.0, 1.2 * (2 ** (attempt - 1))))
         try:
             response = gemma_model.generate_content(
                 prompt,
@@ -1655,7 +1661,7 @@ def call_ai_strict(prompt, mode="general", max_retries=2, fallback_text="",
             if not isinstance(text, str) or not text.strip():
                 if attempt < max_retries - 1:
                     continue
-                return fallback_text or "ไม่สามารถรับข้อมูลจาก AI ได้ในขณะนี้"
+                return fallback_text or "⚠️ ระบบ AI ไม่ว่างชั่วคราว (มีผู้ใช้งานหนาแน่น) — กรุณากดสร้างใหม่อีกครั้งในอีกสักครู่"
 
             if mode == "weather":
                 cleaned = dedupe_weather_blocks(text)
@@ -1680,7 +1686,7 @@ def call_ai_strict(prompt, mode="general", max_retries=2, fallback_text="",
             if attempt < max_retries - 1:
                 continue
 
-    return fallback_text or "ไม่สามารถสร้างข้อมูลได้ในขณะนี้"
+    return fallback_text or "⚠️ ระบบ AI ไม่ว่างชั่วคราว (มีผู้ใช้งานหนาแน่น) — กรุณากดสร้างใหม่อีกครั้งในอีกสักครู่"
 
 # ─── Session State ────────────────────────────────────────────────────────────
 for key, default in {
