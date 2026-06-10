@@ -980,17 +980,30 @@ def parse_locations_from_markdown(markdown_text):
     if not isinstance(markdown_text, str):
         return pd.DataFrame(columns=['name', 'lat', 'lon'])
 
-    pattern = re.compile(r'\*\*(.*?)\s*\(Lat:\s*(-?\d+\.?\d*),\s*Lon:\s*(-?\d+\.?\d*)\)\*\*')
+    # Tolerant matcher — the model rarely emits the exact template, so accept:
+    #   **Name (Lat: x, Lon: y)**   |   **Name** (Lat: x, Lon: y)   |   Name (Lat: x, Lon: y)
+    # plus Lat/Latitude · Lon/Long/Longitude, ':' or '=' separators, any case.
+    pattern = re.compile(
+        r'(?P<name>[^\n*()|]+?)\s*\*{0,2}\s*'
+        r'\(\s*lat(?:itude)?\s*[:=]?\s*(?P<lat>-?\d+\.\d+|-?\d+)\s*[,;]\s*'
+        r'lon(?:g|gitude)?\s*[:=]?\s*(?P<lon>-?\d+\.\d+|-?\d+)\s*\)',
+        re.IGNORECASE,
+    )
     locations = []
-    matches = pattern.findall(markdown_text)
-
-    for match in matches:
+    for m in pattern.finditer(markdown_text):
         try:
-            name = str(match[0]).strip()
-            lat = float(match[1])
-            lon = float(match[2])
+            name = m.group('name')
+            # Drop any leading day-slot prefix ("🌅 เช้า 07:00-10:00: ") and markdown.
+            name = re.sub(r'^.*?\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}\s*:?\s*', '', name)
+            name = re.sub(r'[*_#>•]', '', name).strip(' \t:.-')
+            lat = float(m.group('lat'))
+            lon = float(m.group('lon'))
+            if not name:
+                continue
+            if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+                continue
             locations.append({'name': name, 'lat': lat, 'lon': lon})
-        except:
+        except Exception:
             continue
 
     if not locations:
@@ -1409,6 +1422,92 @@ def ensure_itinerary_sections(text, days):
 
     return "\n\n".join(sections)
 
+
+def build_itinerary_fallback(prov_th, days, festivals=None, lang='TH'):
+    """Province-specific fallback itinerary, used only when the AI call fails.
+
+    Always weaves the province name (and a real festival, if any) into every slot
+    and rotates ideas per day, so two different provinces can never produce the
+    identical generic plan — i.e. the secondary city never 'copies' the main one."""
+    festivals = [f for f in (festivals or []) if isinstance(f, str) and f.strip()]
+
+    if lang == 'EN':
+        morning_ideas = [
+            f"Start the morning at {prov_th}'s signature landmarks and photo spots",
+            f"Explore the nature and scenic viewpoints of {prov_th} in the cool morning",
+            f"Visit the temples and cultural landmarks of {prov_th}",
+        ]
+        lunch_ideas = [
+            f"Savour the famous local cuisine of {prov_th}",
+            f"Drop by a popular local café and eatery in {prov_th}",
+            f"Try the signature seafood / local dishes of {prov_th}",
+        ]
+        evening_ideas = [
+            f"Catch the sunset and evening atmosphere of {prov_th}",
+            f"Stroll the night market / walking street and feel {prov_th}'s local life",
+            f"Unwind by the sea / a viewpoint to close the day in {prov_th}",
+        ]
+        budget = (
+            "## 💰 Budget Summary\n"
+            "- Accommodation: approx. 2,000 - 4,500 THB\n"
+            "- Food: approx. 800 - 1,500 THB\n"
+            "- Transport: approx. 800 - 2,000 THB\n"
+            "- Attractions & activities: approx. 500 - 1,500 THB\n"
+            "- Estimated total: 4,100 - 9,500 THB per person\n\n"
+            "## 🏨 Recommended Stays\n"
+            f"- **Central hotel in {prov_th}**: great location, easy access to key attractions\n"
+            f"- **Nature retreat near {prov_th}**: quiet and relaxing"
+        )
+        fest_evening = lambda f: f"Experience the {f} festival, a highlight of {prov_th}"
+        day_lbl = "Day"
+    else:
+        morning_ideas = [
+            f"เริ่มเช้าที่{prov_th} แวะแลนด์มาร์กและจุดถ่ายรูปสำคัญของจังหวัด",
+            f"สำรวจธรรมชาติและจุดชมวิวเด่นของ{prov_th}ในช่วงเช้าที่อากาศกำลังดี",
+            f"เที่ยวชมวัดและสถานที่สำคัญทางวัฒนธรรมของ{prov_th}",
+        ]
+        lunch_ideas = [
+            f"ลิ้มรสอาหารพื้นเมืองขึ้นชื่อของ{prov_th}",
+            f"แวะคาเฟ่และร้านเด็ดประจำถิ่นของ{prov_th}",
+            f"ชิมเมนูซีฟู้ดหรือของท้องถิ่นยอดนิยมใน{prov_th}",
+        ]
+        evening_ideas = [
+            f"ชมพระอาทิตย์ตกและบรรยากาศยามเย็นของ{prov_th}",
+            f"เดินเล่นตลาดเย็นหรือถนนคนเดินสัมผัสวิถีชุมชน{prov_th}",
+            f"ผ่อนคลายริมทะเลหรือจุดชมวิวปิดท้ายวันที่{prov_th}",
+        ]
+        budget = (
+            "## 💰 สรุปงบประมาณ\n"
+            "- ค่าที่พัก: ประมาณ 2,000 - 4,500 บาท\n"
+            "- ค่าอาหาร: ประมาณ 800 - 1,500 บาท\n"
+            "- ค่าเดินทาง: ประมาณ 800 - 2,000 บาท\n"
+            "- ค่าเข้าสถานที่และกิจกรรม: ประมาณ 500 - 1,500 บาท\n"
+            "- รวมโดยประมาณ: 4,100 - 9,500 บาทต่อคน\n\n"
+            "## 🏨 ที่พักแนะนำ\n"
+            f"- **ที่พักใจกลาง{prov_th}**: ทำเลดี เดินทางสะดวก ใกล้แหล่งท่องเที่ยวหลัก\n"
+            f"- **ที่พักบรรยากาศธรรมชาติใน{prov_th}**: เงียบสงบ เหมาะแก่การพักผ่อน"
+        )
+        fest_evening = lambda f: f"สัมผัสบรรยากาศเทศกาล{f} หนึ่งในไฮไลต์ของ{prov_th}"
+        day_lbl = "วันที่"
+
+    periods = ("Morning", "Lunch", "Evening") if lang == 'EN' else ("เช้า", "กลางวัน", "เย็น")
+
+    sections = []
+    for d in range(1, days + 1):
+        i = (d - 1) % 3
+        morning, lunch, evening = morning_ideas[i], lunch_ideas[i], evening_ideas[i]
+        if d == 1 and festivals:
+            evening = fest_evening(festivals[0])
+        sections.append(
+            f"## 🌟 {day_lbl} {d}\n"
+            f"- 🌅 {periods[0]}: {morning}\n"
+            f"- 🍜 {periods[1]}: {lunch}\n"
+            f"- 🌆 {periods[2]}: {evening}"
+        )
+    sections.append(budget)
+    return "\n\n".join(sections)
+
+
 def clean_itinerary_response(text, days=3):
     if not isinstance(text, str):
         return ""
@@ -1438,6 +1537,55 @@ def clean_itinerary_response(text, days=3):
     result = ensure_itinerary_sections(result, days)
     return result
 
+def _extract_response_text(response):
+    """Safely pull text from a Gemini/Gemma response.
+
+    The `.text` quick-accessor raises (not AttributeError) when the candidate
+    has no simple text Part — e.g. finish_reason MAX_TOKENS / SAFETY — so a plain
+    getattr() with a default does NOT shield against it. Fall back to manually
+    concatenating the text parts of every candidate."""
+    try:
+        text = response.text
+        if isinstance(text, str) and text.strip():
+            return text
+    except Exception:
+        pass
+    try:
+        chunks = []
+        for cand in getattr(response, "candidates", None) or []:
+            content = getattr(cand, "content", None)
+            for part in getattr(content, "parts", None) or []:
+                piece = getattr(part, "text", "")
+                if isinstance(piece, str) and piece:
+                    chunks.append(piece)
+        return "".join(chunks)
+    except Exception:
+        return ""
+
+
+def _itinerary_has_content(text):
+    """True if at least one day-slot bullet has real text after its colon.
+
+    Guards against the model echoing back the empty template skeleton
+    (headers present but every slot blank), which would render as empty cards.
+    Recognises both the timed template (``- 🌅 เช้า 07:00-10:00: ...``) and the
+    generic fallback (``- 🌅 เช้า: ...``) — anything after the LAST colon counts,
+    so the embedded time range (07:00-10:00) is not mistaken for content."""
+    if not isinstance(text, str) or not text.strip():
+        return False
+    slot_emojis = ('🌅', '🍜', '🌆', '☀️', '🌙', '🌃')
+    for line in text.splitlines():
+        s = line.strip()
+        if not s.startswith(('-', '*', '•')):
+            continue
+        if not any(e in s for e in slot_emojis):
+            continue
+        after = s.rsplit(':', 1)[-1].strip()
+        if len(after) >= 2:
+            return True
+    return False
+
+
 def call_ai_strict(prompt, mode="general", max_retries=2, fallback_text=""):
     for attempt in range(max_retries):
         try:
@@ -1450,7 +1598,7 @@ def call_ai_strict(prompt, mode="general", max_retries=2, fallback_text=""):
                     max_output_tokens=2200,
                 )
             )
-            text = getattr(response, "text", "")
+            text = _extract_response_text(response)
 
             if not isinstance(text, str) or not text.strip():
                 if attempt < max_retries - 1:
@@ -1461,6 +1609,14 @@ def call_ai_strict(prompt, mode="general", max_retries=2, fallback_text=""):
                 cleaned = dedupe_weather_blocks(text)
             elif mode == "itinerary":
                 cleaned = clean_itinerary_response(text)
+                # Reject an echoed empty-template skeleton — retry, then fall
+                # back to a content-bearing itinerary so cards are never blank.
+                if not _itinerary_has_content(cleaned):
+                    if attempt < max_retries - 1:
+                        continue
+                    if fallback_text and _itinerary_has_content(fallback_text):
+                        return fallback_text
+                    return cleaned
             else:
                 cleaned = strip_ai_meta_lines(text)
 
@@ -2117,7 +2273,13 @@ Output format (replace every field with real values, no labels or examples):
             fallback_text=weather_fallback
         )
 
-        main_fallback = ensure_itinerary_sections("", days)
+        _main_fests = df_fest_events[
+            df_fest_events['Province_ID'] == province
+        ]['Festival_Name_TH'].dropna().tolist()
+        main_fallback = build_itinerary_fallback(
+            format_province(province), days,
+            festivals=_main_fests, lang=st.session_state.lang
+        )
 
         main_prompt = f"""
 {_lang_instr}
@@ -2148,12 +2310,19 @@ Use this exact structure:
         st.session_state.main_res = call_ai_strict(
             main_prompt,
             mode="itinerary",
+            max_retries=3,
             fallback_text=main_fallback
         )
         st.session_state.main_res = clean_itinerary_response(st.session_state.main_res, days)
 
         if st.session_state.gem_city:
-            gem_fallback = ensure_itinerary_sections("", days)
+            _gem_fests = df_fest_events[
+                df_fest_events['Province_ID'] == st.session_state.gem_city
+            ]['Festival_Name_TH'].dropna().tolist()
+            gem_fallback = build_itinerary_fallback(
+                format_province(st.session_state.gem_city), days,
+                festivals=_gem_fests, lang=st.session_state.lang
+            )
             gem_day_headers = "\n\n".join(
                 f"## 🌟 {_day_lbl} {d}\n"
                 f"- 🌅 {_morning} 07:00-10:00: \n"
@@ -2198,6 +2367,7 @@ Use this exact structure:
             raw_gem = call_ai_strict(
                 gem_prompt,
                 mode="itinerary",
+                max_retries=3,
                 fallback_text=gem_fallback
             )
 
@@ -2238,6 +2408,18 @@ if st.session_state.generated:
     main_locations_df = parse_locations_from_markdown(st.session_state.main_res)
     gem_locations_df = parse_locations_from_markdown(st.session_state.gem_res)
     all_locations_df = pd.concat([main_locations_df, gem_locations_df], ignore_index=True).drop_duplicates()
+
+    # Fallback: if the AI emitted no usable coordinates, pin the province centres
+    # (main + secondary city) so the map always renders something.
+    if all_locations_df.empty:
+        _centroids = []
+        for _pv in [province, st.session_state.gem_city]:
+            _crd = PROVINCE_COORDS.get(_pv)
+            if _crd:
+                _centroids.append({'name': format_province(_pv), 'lat': _crd[0], 'lon': _crd[1]})
+        if _centroids:
+            all_locations_df = pd.DataFrame(_centroids)
+
     weather_blocks = parse_weather_blocks(st.session_state.weather_res)
 
     if (not all_locations_df.empty) or weather_blocks:
