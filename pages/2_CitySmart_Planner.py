@@ -1423,86 +1423,121 @@ def ensure_itinerary_sections(text, days):
     return "\n\n".join(sections)
 
 
-def build_itinerary_fallback(prov_th, days, festivals=None, lang='TH'):
-    """Province-specific fallback itinerary, used only when the AI call fails.
+def build_itinerary_fallback(prov_th, days, festivals=None, lang='TH',
+                             styles=None, budget_level='', travelers=1):
+    """Preference-aware fallback itinerary, used only when the AI call fails.
 
-    Always weaves the province name (and a real festival, if any) into every slot
-    and rotates ideas per day, so two different provinces can never produce the
-    identical generic plan — i.e. the secondary city never 'copies' the main one."""
+    Weaves the province name, a real local festival, and the user's own choices
+    (travel styles · budget tier · group size) into every slot. Because the plan
+    is driven by those inputs, two different provinces — or two different style
+    selections — can never produce the identical generic plan."""
     festivals = [f for f in (festivals or []) if isinstance(f, str) and f.strip()]
+    is_en = (lang == 'EN')
+    style_blob = ' '.join(styles or [])
+    p = prov_th
 
-    if lang == 'EN':
-        morning_ideas = [
-            f"Start the morning at {prov_th}'s signature landmarks and photo spots",
-            f"Explore the nature and scenic viewpoints of {prov_th} in the cool morning",
-            f"Visit the temples and cultural landmarks of {prov_th}",
-        ]
-        lunch_ideas = [
-            f"Savour the famous local cuisine of {prov_th}",
-            f"Drop by a popular local café and eatery in {prov_th}",
-            f"Try the signature seafood / local dishes of {prov_th}",
-        ]
-        evening_ideas = [
-            f"Catch the sunset and evening atmosphere of {prov_th}",
-            f"Stroll the night market / walking street and feel {prov_th}'s local life",
-            f"Unwind by the sea / a viewpoint to close the day in {prov_th}",
-        ]
-        budget = (
-            "## 💰 Budget Summary\n"
-            "- Accommodation: approx. 2,000 - 4,500 THB\n"
-            "- Food: approx. 800 - 1,500 THB\n"
-            "- Transport: approx. 800 - 2,000 THB\n"
-            "- Attractions & activities: approx. 500 - 1,500 THB\n"
-            "- Estimated total: 4,100 - 9,500 THB per person\n\n"
-            "## 🏨 Recommended Stays\n"
-            f"- **Central hotel in {prov_th}**: great location, easy access to key attractions\n"
-            f"- **Nature retreat near {prov_th}**: quiet and relaxing"
-        )
-        fest_evening = lambda f: f"Experience the {f} festival, a highlight of {prov_th}"
-        day_lbl = "Day"
+    # Activity ideas keyed by the (language-independent) style emoji the user picked.
+    if is_en:
+        STYLE_IDEAS = {
+            '📸': (f"hunt down photogenic cafés and check-in spots around {p}",
+                   f"relax at a scenic signature café in {p}",
+                   f"catch golden-hour shots in {p}'s old town"),
+            '⛰️': (f"trek a nature trail or waterfall around {p}",
+                   f"enjoy lunch with a mountain view in {p}",
+                   f"watch the sunset from a {p} viewpoint"),
+            '🛕': (f"pay respects at the most revered temples of {p}",
+                   f"explore a local museum or heritage quarter in {p}",
+                   f"soak up the evening mood at a {p} landmark"),
+            '🍜': (f"go on a street-food crawl through {p}",
+                   f"taste the signature local dish of {p}",
+                   f"hop the night-market food stalls of {p}"),
+            '🧖': (f"ease into the day with a spa or massage in {p}",
+                   f"laze at a beach or riverside café in {p}",
+                   f"unwind with a quiet sunset in {p}"),
+            '🍸': (f"chill at a daytime café before the night out in {p}",
+                   f"try a craft cocktail bar in {p}",
+                   f"experience {p}'s rooftop and nightlife scene"),
+        }
+        default = (f"explore {p}'s signature landmarks and photo spots",
+                   f"savour the famous local cuisine of {p}",
+                   f"soak up the evening atmosphere of {p}")
+        fest_evening = lambda f: f"experience the {f} festival, a highlight of {p}"
+        periods, day_lbl = ("Morning", "Lunch", "Evening"), "Day"
     else:
-        morning_ideas = [
-            f"เริ่มเช้าที่{prov_th} แวะแลนด์มาร์กและจุดถ่ายรูปสำคัญของจังหวัด",
-            f"สำรวจธรรมชาติและจุดชมวิวเด่นของ{prov_th}ในช่วงเช้าที่อากาศกำลังดี",
-            f"เที่ยวชมวัดและสถานที่สำคัญทางวัฒนธรรมของ{prov_th}",
-        ]
-        lunch_ideas = [
-            f"ลิ้มรสอาหารพื้นเมืองขึ้นชื่อของ{prov_th}",
-            f"แวะคาเฟ่และร้านเด็ดประจำถิ่นของ{prov_th}",
-            f"ชิมเมนูซีฟู้ดหรือของท้องถิ่นยอดนิยมใน{prov_th}",
-        ]
-        evening_ideas = [
-            f"ชมพระอาทิตย์ตกและบรรยากาศยามเย็นของ{prov_th}",
-            f"เดินเล่นตลาดเย็นหรือถนนคนเดินสัมผัสวิถีชุมชน{prov_th}",
-            f"ผ่อนคลายริมทะเลหรือจุดชมวิวปิดท้ายวันที่{prov_th}",
-        ]
-        budget = (
-            "## 💰 สรุปงบประมาณ\n"
-            "- ค่าที่พัก: ประมาณ 2,000 - 4,500 บาท\n"
-            "- ค่าอาหาร: ประมาณ 800 - 1,500 บาท\n"
-            "- ค่าเดินทาง: ประมาณ 800 - 2,000 บาท\n"
-            "- ค่าเข้าสถานที่และกิจกรรม: ประมาณ 500 - 1,500 บาท\n"
-            "- รวมโดยประมาณ: 4,100 - 9,500 บาทต่อคน\n\n"
-            "## 🏨 ที่พักแนะนำ\n"
-            f"- **ที่พักใจกลาง{prov_th}**: ทำเลดี เดินทางสะดวก ใกล้แหล่งท่องเที่ยวหลัก\n"
-            f"- **ที่พักบรรยากาศธรรมชาติใน{prov_th}**: เงียบสงบ เหมาะแก่การพักผ่อน"
-        )
-        fest_evening = lambda f: f"สัมผัสบรรยากาศเทศกาล{f} หนึ่งในไฮไลต์ของ{prov_th}"
-        day_lbl = "วันที่"
+        STYLE_IDEAS = {
+            '📸': (f"ตามล่าคาเฟ่สวยและมุมเช็กอินถ่ายรูปรอบ{p}",
+                   f"นั่งชิลคาเฟ่บรรยากาศดีพร้อมเมนูซิกเนเจอร์ของ{p}",
+                   f"เก็บภาพแสงเย็นและสตรีทอาร์ตย่านเมืองเก่า{p}"),
+            '⛰️': (f"เดินป่า น้ำตก และเส้นทางธรรมชาติของ{p}",
+                   f"พักชมวิวภูเขาพร้อมมื้อกลางวันชิลๆ ใน{p}",
+                   f"ชมพระอาทิตย์ตกจากจุดชมวิวของ{p}"),
+            '🛕': (f"ไหว้พระและเที่ยวชมวัดสำคัญของ{p}",
+                   f"แวะพิพิธภัณฑ์หรือย่านเมืองเก่าเรียนรู้ประวัติศาสตร์{p}",
+                   f"สัมผัสบรรยากาศยามเย็นที่แลนด์มาร์กของ{p}"),
+            '🍜': (f"ตะลอนกินสตรีทฟู้ดทั่ว{p}",
+                   f"ลิ้มรสเมนูซิกเนเจอร์ขึ้นชื่อของ{p}",
+                   f"ตะลุยร้านเด็ดในตลาดเย็นของ{p}"),
+            '🧖': (f"เริ่มวันสบายๆ ด้วยสปาหรือนวดผ่อนคลายใน{p}",
+                   f"นอนเล่นริมทะเลหรือคาเฟ่ริมน้ำของ{p}",
+                   f"ผ่อนคลายชมพระอาทิตย์ตกเงียบๆ ที่{p}"),
+            '🍸': (f"ชิลคาเฟ่กลางวันก่อนออกไปใช้ชีวิตกลางคืนใน{p}",
+                   f"ลองบาร์ค็อกเทลบรรยากาศดีของ{p}",
+                   f"สัมผัสรูฟท็อปและไนต์ไลฟ์ของ{p}"),
+        }
+        default = (f"แวะแลนด์มาร์กและจุดถ่ายรูปสำคัญของ{p}",
+                   f"ลิ้มรสอาหารพื้นเมืองขึ้นชื่อของ{p}",
+                   f"สัมผัสบรรยากาศยามเย็นของ{p}")
+        fest_evening = lambda f: f"สัมผัสบรรยากาศเทศกาล{f} หนึ่งในไฮไลต์ของ{p}"
+        periods, day_lbl = ("เช้า", "กลางวัน", "เย็น"), "วันที่"
 
-    periods = ("Morning", "Lunch", "Evening") if lang == 'EN' else ("เช้า", "กลางวัน", "เย็น")
+    # Only the styles the user actually selected drive the plan (else a generic mix).
+    chosen = [STYLE_IDEAS[e] for e in STYLE_IDEAS if e in style_blob] or [default]
 
     sections = []
     for d in range(1, days + 1):
-        i = (d - 1) % 3
-        morning, lunch, evening = morning_ideas[i], lunch_ideas[i], evening_ideas[i]
+        m, l, e = chosen[(d - 1) % len(chosen)]
         if d == 1 and festivals:
-            evening = fest_evening(festivals[0])
+            e = fest_evening(festivals[0])
         sections.append(
             f"## 🌟 {day_lbl} {d}\n"
-            f"- 🌅 {periods[0]}: {morning}\n"
-            f"- 🍜 {periods[1]}: {lunch}\n"
-            f"- 🌆 {periods[2]}: {evening}"
+            f"- 🌅 {periods[0]}: {m}\n"
+            f"- 🍜 {periods[1]}: {l}\n"
+            f"- 🌆 {periods[2]}: {e}"
+        )
+
+    # Budget tier scaled by the user's chosen level, trip length and group size.
+    if '💎' in budget_level:
+        per_day_lo, per_day_hi = 4000, 9000
+        stay_th, stay_en = "ที่พักระดับพรีเมียมหรือรีสอร์ตหรู", "premium hotel or luxury resort"
+    elif '💰' in budget_level:
+        per_day_lo, per_day_hi = 900, 2200
+        stay_th, stay_en = "ที่พักประหยัดหรือโฮสเทลสะอาด", "budget stay or clean hostel"
+    else:
+        per_day_lo, per_day_hi = 2000, 4800
+        stay_th, stay_en = "โรงแรมระดับกลางทำเลดี", "comfortable mid-range hotel"
+    pax = max(1, int(travelers) if str(travelers).isdigit() else travelers or 1)
+    per_lo, per_hi = per_day_lo * days, per_day_hi * days
+    grp_lo, grp_hi = per_lo * pax, per_hi * pax
+
+    if is_en:
+        budget = (
+            "## 💰 Budget Summary\n"
+            f"- Accommodation, food & transport ({days} day(s)): approx. {per_lo:,} - {per_hi:,} THB per person\n"
+            f"- Group total ({pax} traveler(s)): approx. {grp_lo:,} - {grp_hi:,} THB\n"
+            f"- Total estimate: {per_lo:,} - {per_hi:,} THB per person\n\n"
+            "## 🏨 Recommended Stays\n"
+            f"- **{stay_en.capitalize()} in {p}**: matches your selected budget, great location\n"
+            f"- **Alternative stay near {p}**: quiet and relaxing"
+        )
+    else:
+        budget = (
+            "## 💰 สรุปงบประมาณ\n"
+            f"- ค่าที่พัก อาหาร และเดินทาง ({days} วัน): ประมาณ {per_lo:,} - {per_hi:,} บาท/คน\n"
+            f"- รวมทั้งกลุ่ม ({pax} คน): ประมาณ {grp_lo:,} - {grp_hi:,} บาท\n"
+            f"- รวมโดยประมาณ: {per_lo:,} - {per_hi:,} บาทต่อคน\n\n"
+            "## 🏨 ที่พักแนะนำ\n"
+            f"- **{stay_th}ใน{p}**: ตรงกับงบที่เลือก ทำเลดี เดินทางสะดวก\n"
+            f"- **ที่พักทางเลือกใกล้{p}**: เงียบสงบ เหมาะแก่การพักผ่อน"
         )
     sections.append(budget)
     return "\n\n".join(sections)
@@ -1586,7 +1621,24 @@ def _itinerary_has_content(text):
     return False
 
 
-def call_ai_strict(prompt, mode="general", max_retries=2, fallback_text=""):
+def _itinerary_complete(text, expected_days=None):
+    """True only if the itinerary is filled AND finished — i.e. not truncated
+    mid-generation by the output-token cap. Requires every expected day to be
+    present and a budget section to exist (budget comes after all days, so its
+    presence means the model reached the end of the plan)."""
+    if not _itinerary_has_content(text):
+        return False
+    if not re.search(r'^##\s*💰', text, re.MULTILINE):
+        return False
+    if expected_days:
+        day_headers = len(re.findall(r'^##\s*🌟', text, re.MULTILINE))
+        if day_headers < expected_days:
+            return False
+    return True
+
+
+def call_ai_strict(prompt, mode="general", max_retries=2, fallback_text="",
+                   max_tokens=2200, expected_days=None):
     for attempt in range(max_retries):
         try:
             response = gemma_model.generate_content(
@@ -1595,7 +1647,7 @@ def call_ai_strict(prompt, mode="general", max_retries=2, fallback_text=""):
                     temperature=0.35,
                     top_p=0.85,
                     top_k=30,
-                    max_output_tokens=2200,
+                    max_output_tokens=max_tokens,
                 )
             )
             text = _extract_response_text(response)
@@ -1608,10 +1660,11 @@ def call_ai_strict(prompt, mode="general", max_retries=2, fallback_text=""):
             if mode == "weather":
                 cleaned = dedupe_weather_blocks(text)
             elif mode == "itinerary":
-                cleaned = clean_itinerary_response(text)
-                # Reject an echoed empty-template skeleton — retry, then fall
-                # back to a content-bearing itinerary so cards are never blank.
-                if not _itinerary_has_content(cleaned):
+                cleaned = clean_itinerary_response(text, expected_days or 3)
+                # Reject an empty skeleton OR a plan cut off mid-generation —
+                # retry, then fall back to the complete (province-aware) itinerary
+                # so the user never sees a blank or half-finished plan.
+                if not _itinerary_complete(cleaned, expected_days):
                     if attempt < max_retries - 1:
                         continue
                     if fallback_text and _itinerary_has_content(fallback_text):
@@ -2278,7 +2331,8 @@ Output format (replace every field with real values, no labels or examples):
         ]['Festival_Name_TH'].dropna().tolist()
         main_fallback = build_itinerary_fallback(
             format_province(province), days,
-            festivals=_main_fests, lang=st.session_state.lang
+            festivals=_main_fests, lang=st.session_state.lang,
+            styles=selected_style, budget_level=budget_level, travelers=travelers
         )
 
         main_prompt = f"""
@@ -2291,8 +2345,10 @@ Each slot: include place name + main activity + time range.
 All budget numbers MUST use comma formatting, e.g. 1,500 บาท — never write without commas like 1500 บาท. In the total estimate line, always specify per person (ต่อคน / per person).
 
 Create a {days}-day itinerary for {format_province(province)}, {start_date_str} to {end_date_str}
+Travelers: {travelers}
 Style: {style_str}
 Budget: {budget_clean}{_budget_data_hint}
+Tailor every recommendation to the travel style, group size and budget above. Choose places and activities that genuinely fit {format_province(province)} — do not reuse a generic template.
 
 Use this exact structure:
 {day_headers}
@@ -2307,11 +2363,16 @@ Use this exact structure:
 ## 🗺️ Coordinates
 (List every place mentioned. Format: **Place Name (Lat: XX.XXXX, Lon: YY.YYYY)**)
 """
+        # Thai text is token-heavy; give long / multi-day plans enough room so
+        # they are never truncated mid-day by the output cap.
+        _itin_tokens = min(8192, 2600 + days * 1100)
         st.session_state.main_res = call_ai_strict(
             main_prompt,
             mode="itinerary",
             max_retries=3,
-            fallback_text=main_fallback
+            fallback_text=main_fallback,
+            max_tokens=_itin_tokens,
+            expected_days=days
         )
         st.session_state.main_res = clean_itinerary_response(st.session_state.main_res, days)
 
@@ -2321,7 +2382,8 @@ Use this exact structure:
             ]['Festival_Name_TH'].dropna().tolist()
             gem_fallback = build_itinerary_fallback(
                 format_province(st.session_state.gem_city), days,
-                festivals=_gem_fests, lang=st.session_state.lang
+                festivals=_gem_fests, lang=st.session_state.lang,
+                styles=selected_style, budget_level=budget_level, travelers=travelers
             )
             gem_day_headers = "\n\n".join(
                 f"## 🌟 {_day_lbl} {d}\n"
@@ -2348,8 +2410,10 @@ Do NOT put Lat/Lon in the daily plan. Only in ## 🗺️ Coordinates at the end.
 Use only real place names.
 
 Create a {days}-day itinerary for {gem_prov_th}, {start_date_str} to {end_date_str}
+Travelers: {travelers}
 Style: {style_str}
 Budget: {budget_clean}
+Tailor every recommendation to the travel style, group size and budget above. This is {gem_prov_th} — recommend places unique to {gem_prov_th}, completely different from any other province. Do not reuse a generic template.
 
 Use this exact structure:
 {gem_day_headers}
@@ -2368,7 +2432,9 @@ Use this exact structure:
                 gem_prompt,
                 mode="itinerary",
                 max_retries=3,
-                fallback_text=gem_fallback
+                fallback_text=gem_fallback,
+                max_tokens=_itin_tokens,
+                expected_days=days
             )
 
             st.session_state.gem_res = clean_itinerary_response(raw_gem, days)
