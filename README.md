@@ -112,7 +112,6 @@
 | **Databases** | MySQL (บันทึกแผนทริป) · MongoDB (data pipeline) |
 | **Visualization** | [Plotly](https://plotly.com/) |
 | **External Data** | Google Trends (`pytrends`) |
-| **PDF / Export** | `fpdf2` (Thai font: Sarabun) · `openpyxl` |
 | **Scheduling** | `schedule` (data refresh) |
 
 ---
@@ -147,56 +146,9 @@ gemma-data-driven-tourism-project/
 
 ---
 
-## ⚙️ การติดตั้งและรัน (Getting Started)
-
-**1. Clone & ติดตั้ง dependencies**
-```bash
-git clone <repo-url>
-cd gemma-data-driven-tourism-project
-pip install -r requirements.txt
-```
-
-**2. ตั้งค่า Secrets** — สร้างไฟล์ `.streamlit/secrets.toml`
-```toml
-[gemini]
-GEMINI_API_KEY = "your-google-ai-api-key"
-
-# (ไม่บังคับ) ถ้าไม่ตั้งค่า Snowflake/MySQL ระบบจะ fallback ไปใช้ Local CSV อัตโนมัติ
-[snowflake]
-account = "..."
-user = "..."
-password = "..."
-
-[mysql]
-host = "..."
-user = "..."
-password = "..."
-database = "..."
-```
-
-**3. รันแอป**
-```bash
-streamlit run app.py
-```
-เปิดเบราว์เซอร์ที่ `http://localhost:8501`
-
-> 💡 ตัวแอปออกแบบให้ทำงานได้แม้ไม่มี Snowflake/MySQL — จะ **fallback ไปใช้ไฟล์ CSV ในเครื่องอัตโนมัติ** ส่วนโหมด AI ต้องมี Google AI API key
-
----
-
-## 📖 Methodology
-
-**1. Issues & Motivation** — รายได้กระจุกที่เมืองหลัก ผู้มีส่วนได้ส่วนเสียในท้องถิ่นตีความสถิติที่ซับซ้อนได้ยาก
-
-**2. Data-Centric Approach** — จัดทำ *Master Festival Dataset* เพิ่มบริบทเชิงเศรษฐกิจให้ข้อมูลรายได้ และใช้ DuckDB ทำ feature engineering แบบ "Quality over Quantity"
-
-**3. AI Integration** — ใช้ Gemma 4 แปลง "ข้อมูลสไลซ์" เป็นคำแนะนำเชิงกลยุทธ์ พร้อมระบบกันความผิดพลาด (retry + backoff, fallback ที่ปรับตามจังหวัด/สไตล์/งบของผู้ใช้) เพื่อให้แผนไม่ซ้ำและสมบูรณ์เสมอ
-
----
-
 <div align="center">
 
 **Gemma City-Smart Strategist** · Powered by Google Gemma 4
-ข้อมูล: กระทรวงการท่องเที่ยวและกีฬา 2566–2568 · พัฒนาโดยทีม Gemma Tourism Lab
+ข้อมูล: กระทรวงการท่องเที่ยวและกีฬา 2566–2568
 
 </div>
