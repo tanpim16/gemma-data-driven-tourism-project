@@ -8,10 +8,7 @@
 แพลตฟอร์มวิเคราะห์การท่องเที่ยว 77 จังหวัด ที่เปลี่ยนข้อมูลดิบให้เป็น *Actionable Insights*
 พร้อมผู้ช่วย AI (Gemma 4) สำหรับวางแผนทริป กลยุทธ์ผู้ประกอบการ และข้อเสนอเชิงนโยบาย
 
-[![Streamlit](https://img.shields.io/badge/Built%20with-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
-[![Gemma](https://img.shields.io/badge/AI-Google%20Gemma%204-4285F4?logo=google&logoColor=white)](https://ai.google.dev/gemma)
-[![DuckDB](https://img.shields.io/badge/Engine-DuckDB-FFF000?logo=duckdb&logoColor=black)](https://duckdb.org/)
-[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+`🎈 Streamlit`  ·  `🤖 Gemma 4`  ·  `🦆 DuckDB`  ·  `🐍 Python 3.11+`
 
 🔗 **Live Demo:** https://gemma-tourism-project-genzapp-dads5001-2-2026.streamlit.app
 
