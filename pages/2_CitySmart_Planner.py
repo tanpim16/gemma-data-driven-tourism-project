@@ -1706,9 +1706,7 @@ if st.session_state.lang not in ('TH', 'EN'):
 try:
     with st.spinner("กำลังโหลดข้อมูลการท่องเที่ยว..."):
         (df_tour, df_fest, df_fest_events), snowflake_was_skipped = load_data_core()
-    if snowflake_was_skipped:
-        st.warning("⚠️ Snowflake connection failed. Falling back to local CSV.", icon="📉")
-    else:
+    if not snowflake_was_skipped:
         st.toast("❄️ Loaded data from Snowflake.", icon="✅")
 except (FileNotFoundError, ImportError, ValueError) as e:
     st.error(f"❌ เกิดข้อผิดพลาดร้ายแรงในการโหลดข้อมูล:\n\n{e}")

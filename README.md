@@ -1,39 +1,202 @@
-# ✈️ Gemma-Insight: Smart-Event Strategist for Thailand’s Secondary Cities
+<div align="center">
 
-### 🌟 Project Overview
-This project is a **Data-centric Web Application** designed to enhance tourism strategies for Thailand's 55 secondary cities. By integrating **Gemma 4 AI** with historical tourism data and a curated festival master dataset, the app provides actionable insights for local entrepreneurs and policymakers.
+# 🧭 Gemma City-Smart Strategist
+### ยกระดับการท่องเที่ยวไทยด้วยข้อมูลจริง + AI
 
----
+**A Data-Driven Tourism Platform for Thailand's 55 Secondary Cities**
 
-### 🚀 Key Features
-- **Multi-page Interface:** Built with Streamlit for a seamless user experience.
-- **2 Operational Modes:**
-  - **Non-AI Mode (Analytics Dashboard):** Real-time data visualization using **DuckDB** and **Plotly**.
-  - **AI Mode (Smart Consultant):** AI-driven strategic recommendations powered by **Gemma 4**.
-- **Deep Event Analysis:** Correlates tourism revenue with a master dataset of 39+ national and provincial festivals.
+แพลตฟอร์มวิเคราะห์การท่องเที่ยว 77 จังหวัด ที่เปลี่ยนข้อมูลดิบให้เป็น *Actionable Insights*
+พร้อมผู้ช่วย AI (Gemma 4) สำหรับวางแผนทริป กลยุทธ์ผู้ประกอบการ และข้อเสนอเชิงนโยบาย
 
----
+[![Streamlit](https://img.shields.io/badge/Built%20with-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![Gemma](https://img.shields.io/badge/AI-Google%20Gemma%204-4285F4?logo=google&logoColor=white)](https://ai.google.dev/gemma)
+[![DuckDB](https://img.shields.io/badge/Engine-DuckDB-FFF000?logo=duckdb&logoColor=black)](https://duckdb.org/)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 
-### 📖 Methodology
+🔗 **Live Demo:** https://gemma-tourism-project-genzapp-dads5001-2-2026.streamlit.app
 
-**1. Issues & Motivation**
-* **Goal:** Bridge the gap between raw tourism data and actionable strategies for 55 secondary cities.
-* **Problem:** Revenue is concentrated in major cities; local stakeholders struggle to interpret complex statistics.
-
-**2. Data-Centric Approach**
-* **Curation:** Developed a **Master Festival Dataset (39+ events)** with Economic Impact scores to add context to revenue data.
-* **Engine:** Used **DuckDB** for high-performance data joining and "Quality over Quantity" feature engineering.
-
-**3. AI Integration**
-* **Consultant:** Integrated **Gemma 4** to transform data slices into business recommendations.
-* **Seamless Flow:** Used **Streamlit Session State** to pass data context from the Dashboard to the AI, ensuring personalized insights.
+</div>
 
 ---
 
-### 🛠️ Tech Stack
-- **Frontend:** [Streamlit](https://streamlit.io/)
-- **Data Engine:** [DuckDB](https://duckdb.org/) / Pandas
-- **Database:** [Supabase](https://supabase.com/) (External Database for User Logs/Feedback)
-- **AI Model:** Google Gemma 4
-- **Visualization:** Plotly
+## 🌟 ภาพรวมโครงการ (Project Overview)
 
+รายได้จากการท่องเที่ยวของไทยกระจุกตัวอยู่ที่ **เมืองหลัก** ขณะที่ **เมืองรองทั้ง 55 จังหวัด** มีศักยภาพสูงแต่ยังถูกมองข้าม — ช่องว่างรายได้ระหว่างเมืองหลักกับเมืองรองสูงถึง **4–6 เท่า**
+
+โครงการนี้เป็น **Data-Centric Web Application** ที่รวม **ข้อมูลสถิติการท่องเที่ยวจริง (2566–2568)**, **ฐานข้อมูลเทศกาลที่จัดทำขึ้นเอง (39+ งาน)** และ **Google Trends** เข้ากับ **Generative AI (Gemma 4)** เพื่อช่วยให้ทั้งนักท่องเที่ยว ผู้ประกอบการ และภาครัฐ ตัดสินใจได้บนพื้นฐานของข้อมูล
+
+> **เป้าหมาย:** ลดช่องว่างระหว่าง *ข้อมูลดิบ* กับ *กลยุทธ์ที่ลงมือทำได้จริง* และกระจายรายได้สู่ชุมชนเมืองรอง
+
+---
+
+## 🚀 ฟีเจอร์หลัก (Key Features)
+
+แอปทำงานแบบ **Multi-page** (5 หน้า) และมี **2 โหมด** ในทุกหน้า — *Non-AI (Dashboard)* และ *AI (Smart Consultant)*
+
+| # | หน้า (Page) | คำอธิบาย |
+|---|------------|----------|
+| 🧠 | **Introduction** | หน้าภาพรวมโครงการ · สถิติเด่น · เส้นทางการใช้งานสำหรับแต่ละกลุ่มผู้ใช้ |
+| 📈 | **Market Analysis** | แดชบอร์ดวิเคราะห์ตลาด — ช่องว่างรายได้เมืองหลัก/เมืองรอง, ผลกระทบเทศกาลต่อรายได้, เทรนด์รายปี (DuckDB + Plotly) |
+| 🤖 | **CitySmart Planner** | ผู้ช่วย AI 3 บทบาท: **นักท่องเที่ยว** (วางแผนทริป + Loop Trip เมืองรอง + พยากรณ์อากาศ + แผนที่ + Export PDF), **ผู้ประกอบการ** (กลยุทธ์การตลาด), **ภาครัฐ** (ข้อเสนอเชิงนโยบาย) |
+| 💼 | **Business Planning** | วิเคราะห์เชิงลึกด้วย Google Trends เทียบกับสถิตินักท่องเที่ยว เพื่อวางแผนธุรกิจรายจังหวัด |
+| 📊 | **Trip Insights** | แดชบอร์ดสรุปแผนทริปที่ผู้ใช้สร้าง — จังหวัดยอดนิยม, งบประมาณ, ระยะเวลา, เมืองหลัก vs เมืองรอง |
+
+**ไฮไลต์ที่น่าสนใจ**
+- 🗺️ **Loop Trip · Hidden Gem Route** — สร้างเส้นทางเมืองหลัก → เมืองรอง → กลับบ้าน พร้อมระยะทาง/เวลาขับรถ และ AI สรุปไฮไลต์แต่ละจุด
+- 🎉 **Deep Event Analysis** — เชื่อมโยงรายได้การท่องเที่ยวกับเทศกาล 39+ งานทั่วประเทศ
+- 🌦️ **Weather-aware Planning** — แผนทริปคำนึงถึงสภาพอากาศของแต่ละจังหวัด
+- 📄 **PDF Export** — ดาวน์โหลดแผนเดินทาง (รองรับฟอนต์ไทย Sarabun)
+- 🌐 **2 ภาษา** — ไทย / English
+
+---
+
+## 🖼️ ตัวอย่างหน้าจอ (Screenshots)
+
+### 🧠 Introduction
+![Introduction](picture/Introduction/Introduction_1.png)
+
+### 📈 Market Analysis
+![Market Analysis](picture/1_Market_Analysis/1_Market_Analysis_1.png)
+![Market Analysis](picture/1_Market_Analysis/1_Market_Analysis_2.png)
+![Market Analysis](picture/1_Market_Analysis/1_Market_Analysis_3.png)
+![Market Analysis](picture/1_Market_Analysis/1_Market_Analysis_4.png)
+
+### 🤖 CitySmart Planner
+![CitySmart Planner](picture/2_CitySmart_Planner/2_CitySmart_Planner_1.png)
+
+### 💼 Business Planning
+![Business Planning](picture/3_Business_planning/3_Business_planning_1.png)
+![Business Planning](picture/3_Business_planning/3_Business_planning_2.png)
+
+### 📊 Trip Insights
+![Trip Insights](picture/4_My_Trips/4_My_Trips_1.png)
+
+---
+
+## 🏗️ สถาปัตยกรรมระบบ (Architecture)
+
+```
+                ┌──────────────────────────────────────────────┐
+   Data Sources │  Tourism Stats · Festival Master · G-Trends   │
+                └──────────────────────┬───────────────────────┘
+                                       │  (ETL / Scheduler)
+                   ┌───────────────────▼────────────────────┐
+   Storage Layer   │  ❄️ Snowflake  ──fallback──▶  📄 Local CSV │
+                   │  🍃 MongoDB (pipeline)  ·  🐬 MySQL (logs) │
+                   └───────────────────┬────────────────────┘
+                                       │
+                          ┌────────────▼────────────┐
+   Query Engine           │   🦆 DuckDB  +  Pandas    │
+                          └────────────┬────────────┘
+                                       │
+            ┌──────────────────────────┼──────────────────────────┐
+            ▼                          ▼                           ▼
+   📈 Analytics (Plotly)     🤖 Gemma 4 Consultant        📄 PDF / 🗺️ Maps
+            └──────────────────────────┼──────────────────────────┘
+                                       ▼
+                          🖥️ Streamlit Multi-page UI
+```
+
+**Data flow ที่สำคัญ:** Streamlit `session_state` ทำหน้าที่ส่งต่อบริบทข้อมูล (จังหวัด/สไตล์/งบ) จากแดชบอร์ดไปยัง AI เพื่อให้คำแนะนำที่ *personalized* ต่อผู้ใช้แต่ละคน
+
+---
+
+## 🛠️ Tech Stack
+
+| ด้าน | เทคโนโลยี |
+|------|-----------|
+| **Frontend / App** | [Streamlit](https://streamlit.io/) (multi-page navigation) |
+| **AI Model** | Google **Gemma 4** (`gemma-4-31b-it`) ผ่าน `google-generativeai` |
+| **Query Engine** | [DuckDB](https://duckdb.org/) + Pandas / NumPy |
+| **Data Warehouse** | [Snowflake](https://www.snowflake.com/) (fallback เป็น Local CSV อัตโนมัติ) |
+| **Databases** | MySQL (บันทึกแผนทริป) · MongoDB (data pipeline) |
+| **Visualization** | [Plotly](https://plotly.com/) |
+| **External Data** | Google Trends (`pytrends`) |
+| **PDF / Export** | `fpdf2` (Thai font: Sarabun) · `openpyxl` |
+| **Scheduling** | `schedule` (data refresh) |
+
+---
+
+## 📚 แหล่งข้อมูล (Data Sources)
+
+- **สถิติการท่องเที่ยว ปี 2566–2568** — กระทรวงการท่องเที่ยวและกีฬา (`master_tourism_analysis.csv`)
+- **Thailand Festival Master Dataset** — ฐานข้อมูลเทศกาล 39+ งาน พร้อม Economic Impact score (จัดทำเอง)
+- **Google Trends** — ความสนใจการค้นหารายจังหวัด (`Google_Trends_Data.csv`, `Travel_search2026.csv`)
+
+---
+
+## 📂 โครงสร้างโปรเจกต์ (Project Structure)
+
+```
+gemma-data-driven-tourism-project/
+├── app.py                       # Entry point — Streamlit navigation
+├── intro.py                     # 🧠 หน้า Introduction (ภาพรวมโครงการ)
+├── pages/
+│   ├── 1_Market_Analysis.py     # 📈 แดชบอร์ดวิเคราะห์ตลาด
+│   ├── 2_CitySmart_Planner.py   # 🤖 ผู้ช่วย AI (นักท่องเที่ยว/ผู้ประกอบการ/ภาครัฐ)
+│   ├── 3_Business_planning.py   # 💼 วางแผนธุรกิจด้วย Google Trends
+│   └── 4_My_Trips.py            # 📊 Trip Insights dashboard
+├── utils/
+│   ├── snowflake_connector.py   # เชื่อมต่อ Snowflake (+ fallback CSV)
+│   ├── mysql_connector.py       # บันทึก/ดึงแผนทริป
+│   └── upload_to_snowflake.py   # สคริปต์ ETL อัปโหลดข้อมูล
+├── data/                        # Datasets + data-pipeline scripts
+├── .streamlit/secrets.toml      # 🔒 API keys / DB credentials (gitignored)
+└── requirements.txt
+```
+
+---
+
+## ⚙️ การติดตั้งและรัน (Getting Started)
+
+**1. Clone & ติดตั้ง dependencies**
+```bash
+git clone <repo-url>
+cd gemma-data-driven-tourism-project
+pip install -r requirements.txt
+```
+
+**2. ตั้งค่า Secrets** — สร้างไฟล์ `.streamlit/secrets.toml`
+```toml
+[gemini]
+GEMINI_API_KEY = "your-google-ai-api-key"
+
+# (ไม่บังคับ) ถ้าไม่ตั้งค่า Snowflake/MySQL ระบบจะ fallback ไปใช้ Local CSV อัตโนมัติ
+[snowflake]
+account = "..."
+user = "..."
+password = "..."
+
+[mysql]
+host = "..."
+user = "..."
+password = "..."
+database = "..."
+```
+
+**3. รันแอป**
+```bash
+streamlit run app.py
+```
+เปิดเบราว์เซอร์ที่ `http://localhost:8501`
+
+> 💡 ตัวแอปออกแบบให้ทำงานได้แม้ไม่มี Snowflake/MySQL — จะ **fallback ไปใช้ไฟล์ CSV ในเครื่องอัตโนมัติ** ส่วนโหมด AI ต้องมี Google AI API key
+
+---
+
+## 📖 Methodology
+
+**1. Issues & Motivation** — รายได้กระจุกที่เมืองหลัก ผู้มีส่วนได้ส่วนเสียในท้องถิ่นตีความสถิติที่ซับซ้อนได้ยาก
+
+**2. Data-Centric Approach** — จัดทำ *Master Festival Dataset* เพิ่มบริบทเชิงเศรษฐกิจให้ข้อมูลรายได้ และใช้ DuckDB ทำ feature engineering แบบ "Quality over Quantity"
+
+**3. AI Integration** — ใช้ Gemma 4 แปลง "ข้อมูลสไลซ์" เป็นคำแนะนำเชิงกลยุทธ์ พร้อมระบบกันความผิดพลาด (retry + backoff, fallback ที่ปรับตามจังหวัด/สไตล์/งบของผู้ใช้) เพื่อให้แผนไม่ซ้ำและสมบูรณ์เสมอ
+
+---
+
+<div align="center">
+
+**Gemma City-Smart Strategist** · Powered by Google Gemma 4
+ข้อมูล: กระทรวงการท่องเที่ยวและกีฬา 2566–2568 · พัฒนาโดยทีม Gemma Tourism Lab
+
+</div>

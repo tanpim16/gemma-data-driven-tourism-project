@@ -159,9 +159,7 @@ def load_data_core():
 
 try:
     (df_tour, df_fest, df_fest_events), snowflake_was_skipped = load_data_core()
-    if snowflake_was_skipped:
-        st.warning("⚠️ Snowflake connection failed. Falling back to local CSV.", icon="📉")
-    else:
+    if not snowflake_was_skipped:
         st.toast("❄️ Loaded data from Snowflake.", icon="✅")
 except Exception as e:
     st.error(f"❌ เกิดข้อผิดพลาดร้ายแรงในการโหลดข้อมูล:\n\n{e}")
