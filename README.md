@@ -5,6 +5,10 @@
 
 **A Data-Driven Tourism Platform for Thailand's 55 Secondary Cities**
 
+**Presented by**<br>
+*6810422011 Pimkanit Thongsrikaew*<br>
+*6810422023 Somruedee Karnphakdee*
+
 แพลตฟอร์มวิเคราะห์การท่องเที่ยว 77 จังหวัด ที่เปลี่ยนข้อมูลดิบให้เป็น *Actionable Insights*
 พร้อมผู้ช่วย AI (Gemma 4) สำหรับวางแผนทริป กลยุทธ์ผู้ประกอบการ และข้อเสนอเชิงนโยบาย
 
